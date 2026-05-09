@@ -1,0 +1,59 @@
+#include <iostream>
+#include <vector>
+#include <string>
+#include <sstream>
+#include <algorithm>
+#include <deque>
+
+using namespace std;
+
+int main() {
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+
+    string line;
+    if (!getline(cin, line)) return 0;
+    stringstream ss(line);
+    vector<long long> fun;
+    long long v;
+    while (ss >> v) fun.push_back(v);
+
+    int K, M;
+    if (!(cin >> K >> M)) return 0;
+
+    int n = fun.size();
+    vector<long long> pref(n + 1, 0);
+    for (int i = 0; i < n; i++) pref[i + 1] = pref[i] + fun[i];
+
+    vector<long long> dp(n + 1, -1e17);
+    vector<long long> help(n + 1, -1e17);
+
+    for (int i = 1; i <= K + 1 && i <= n; i++) {
+        for (int L = 1; L <= M && i - L >= 0; L++) {
+            if (i - L <= K) {
+                dp[i] = max(dp[i], pref[i] - pref[i - L]);
+            }
+        }
+    }
+
+    for (int i = 1; i <= n; i++) {
+        for (int L = 1; L <= M && i - L >= 1; L++) {
+            int run_start = i - L;
+            for (int j = max(0, run_start - (K + 1)); j < run_start; j++) {
+                if (dp[j] > -1e16) {
+                    dp[i] = max(dp[i], dp[j] + (pref[i] - pref[run_start]));
+                }
+            }
+        }
+    }
+
+    long long result = -1e17;
+    for (int i = n; i >= 0 && n - i <= K; i--) {
+        if (i == 0 && n > K) continue;
+        result = max(result, (i == 0 ? 0 : dp[i]));
+    }
+
+    cout << result << endl;
+
+    return 0;
+}
