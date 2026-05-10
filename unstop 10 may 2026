@@ -1,0 +1,22 @@
+#include <iostream>
+#include <vector>
+#include <cmath>
+#include <algorithm>
+
+int minEnergyCost(const std::vector<int>& energy, int N, int K) {
+    if (N == 0) return 0;
+    
+    std::vector<int> dp(N, 1e9);
+    dp[0] = 0;
+
+    for (int i = 0; i < N; ++i) {
+        for (int j = 1; j <= K; ++j) {
+            if (i + j < N) {
+                int cost = std::abs(energy[i + j] - energy[i]);
+                dp[i + j] = std::min(dp[i + j], dp[i] + cost);
+            }
+        }
+    }
+
+    return dp[N - 1];
+}
