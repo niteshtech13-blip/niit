@@ -1,0 +1,43 @@
+#include <iostream>
+#include <string>
+
+using namespace std;
+
+string canMakeHalvesEqual(const string& S) {
+    int fullLength = S.length();
+    int n = fullLength / 2;
+
+    int firstHalfZeros = 0;
+    int firstHalfOnes = 0;
+    int secondHalfZeros = 0;
+    int secondHalfOnes = 0;
+
+    for (int i = 0; i < n; ++i) {
+        if (S[i] == '0') firstHalfZeros++;
+        else firstHalfOnes++;
+    }
+
+    for (int i = n; i < fullLength; ++i) {
+        if (S[i] == '0') secondHalfZeros++;
+        else secondHalfOnes++;
+    }
+
+    if (firstHalfZeros == secondHalfZeros && firstHalfOnes == secondHalfOnes) {
+        return "YES";
+    }
+
+    return "NO";
+}
+
+int main() {
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+
+    string S;
+    if (!(cin >> S)) return 0;
+
+    string result = canMakeHalvesEqual(S);
+    cout << result << endl;
+
+    return 0;
+}
