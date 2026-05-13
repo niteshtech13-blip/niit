@@ -1,0 +1,113 @@
+#include <iostream>
+#include <vector>
+#include <queue>
+
+using namespace std;
+
+struct State {
+    int stops;
+    int fuel;
+    int city;
+
+    bool operator<(const State &other) const {
+        if (stops == other.stops) {
+            return fuel < other.fuel;
+        }
+        return stops > other.stops;
+    }
+};
+
+int minRefuels(int N, int M, int D, int S, int E, vector<vector<int>> &flights) {
+    vector<vector<pair<int, int>>> graph(N + 1);
+
+    for (int i = 0; i < M; i++) {
+        int u = flights[i][0];
+        int v = flights[i][1];
+        int dist = flights[i][2];
+
+        graph[u].push_back({v, dist});
+    }
+
+    vector<int> bestStops(N + 1, 1e9);
+    vector<int> bestFuel(N + 1, -1);
+
+    priority_queue<State> pq;
+
+    bestStops[S] = 0;
+    bestFuel[S] = D;
+
+    pq.push({0, D, S});
+
+    while (!pq.empty()) {
+        State current = pq.top();
+        pq.pop();
+
+        int stops = current.stops;
+        int fuel = current.fuel;
+        int city = current.city;
+
+        if (city == E) {
+            return stops;
+        }
+
+        if (stops > bestStops[city]) {
+            continue;
+        }
+
+        if (stops == bestStops[city] && fuel < bestFuel[city]) {
+            continue;
+        }
+
+        for (auto next : graph[city]) {
+            int nextCity = next.first;
+            int need = next.second;
+
+            if (need > D) {
+                continue;
+            }
+
+            int nextStops = stops;
+            int nextFuel;
+
+            if (need <= fuel) {
+                nextFuel = fuel - need;
+            } else {
+                nextStops++;
+                nextFuel = D - need;
+            }
+
+            if (nextStops < bestStops[nextCity]) {
+                bestStops[nextCity] = nextStops;
+                bestFuel[nextCity] = nextFuel;
+
+                pq.push({nextStops, nextFuel, nextCity});
+            } else if (nextStops == bestStops[nextCity] && nextFuel > bestFuel[nextCity]) {
+                bestFuel[nextCity] = nextFuel;
+
+                pq.push({nextStops, nextFuel, nextCity});
+            }
+        }
+    }
+
+    return -1;
+}
+
+int main() {
+    int N, M, D;
+    cin >> N >> M >> D;
+
+    int S, E;
+    cin >> S >> E;
+
+    vector<vector<int>> flights(M, vector<int>(3));
+
+    for (int i = 0; i < M; ++i) {
+        cin >> flights[i][0] >> flights[i][1] >> flights[i][2];
+    }
+
+    int result = minRefuels(N, M, D, S, E, flights);
+
+    cout << result << endl;
+
+    return 0;
+}
