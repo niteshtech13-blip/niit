@@ -1,0 +1,44 @@
+#include <iostream>
+#include <vector>
+#include <algorithm>
+
+long long total_increment = 0;
+
+long long dfs(int node, int max_node, const std::vector<int>& weights) {
+    int left_child = 2 * node;
+    int right_child = 2 * node + 1;
+
+    if (left_child > max_node) {
+        return 0;
+    }
+
+    long long left_path = dfs(left_child, max_node, weights) + weights[left_child - 2];
+    long long right_path = dfs(right_child, max_node, weights) + weights[right_child - 2];
+
+    total_increment += std::abs(left_path - right_path);
+
+    return std::max(left_path, right_path);
+}
+
+int user_logic(int n, const std::vector<int>& weights) {
+    total_increment = 0;
+    int max_node = (1 << (n + 1)) - 1;
+    dfs(1, max_node, weights);
+    return total_increment;
+}
+
+int main() {
+    std::ios_base::sync_with_stdio(false);
+    std::cin.tie(NULL);
+
+    int n;
+    if (std::cin >> n) {
+        std::vector<int> weights((1 << (n + 1)) - 2);
+        for (size_t i = 0; i < weights.size(); ++i) {
+            std::cin >> weights[i];
+        }
+        long long result = user_logic(n, weights);
+        std::cout << result << std::endl;
+    }
+    return 0;
+}
