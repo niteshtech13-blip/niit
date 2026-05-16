@@ -1,0 +1,42 @@
+#include <iostream>
+#include <vector>
+#include <cmath>
+using namespace std;
+
+vector<long long> computeFinalSizes(int numMinerals, vector<int>& initialSizes, int numDays) {
+    vector<long long> finalSizes(numMinerals);
+
+    long long factor = 1;
+    for (int day = 1; day <= numDays; ++day) {
+        if (day % 3 == 0) {
+            factor /= 2;
+        } else {
+            factor *= 2;
+        }
+    }
+
+    for (int i = 0; i < numMinerals; ++i) {
+        finalSizes[i] = (long long)initialSizes[i] * factor;
+    }
+
+    return finalSizes;
+}
+
+int main() {
+    int numMinerals, numDays;
+    cin >> numMinerals;
+    vector<int> initialSizes(numMinerals);
+    for (int i = 0; i < numMinerals; ++i) {
+        cin >> initialSizes[i];
+    }
+    cin >> numDays;
+
+    vector<long long> result = computeFinalSizes(numMinerals, initialSizes, numDays);
+
+    for (long long size : result) {
+        cout << size << " ";
+    }
+    cout << endl;
+
+    return 0;
+}
