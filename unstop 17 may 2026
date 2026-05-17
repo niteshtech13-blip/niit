@@ -1,0 +1,32 @@
+#include <iostream>
+#include <vector>
+
+void can_select_people(int N, int K, std::vector<int>& arr) {
+    std::vector<bool> dp(K + 1, false);
+    dp[0] = true;
+
+    for (int i = 0; i < N; ++i) {
+        for (int j = K; j >= arr[i]; --j) {
+            if (dp[j - arr[i]]) {
+                dp[j] = true;
+            }
+        }
+    }
+
+    if (dp[K]) {
+        std::cout << "YES" << std::endl;
+    } else {
+        std::cout << "NO" << std::endl;
+    }
+}
+
+int main() {
+    int N, K;
+    std::cin >> N >> K;
+    std::vector<int> arr(N);
+    for (int i = 0; i < N; ++i) {
+        std::cin >> arr[i];
+    }
+    can_select_people(N, K, arr);
+    return 0;
+}
