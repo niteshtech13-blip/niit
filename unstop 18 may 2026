@@ -1,0 +1,38 @@
+#include <iostream>
+#include <string>
+
+int LongestConsecutiveCharacter(const std::string& s) {
+    if (s.empty()) {
+        return 0;
+    }
+
+    int maxLength = 1;
+    int currentLength = 1;
+
+    for (size_t i = 1; i < s.length(); ++i) {
+        if (s[i] == s[i - 1]) {
+            currentLength++;
+        } else {
+            if (currentLength > maxLength) {
+                maxLength = currentLength;
+            }
+            currentLength = 1;
+        }
+    }
+
+    if (currentLength > maxLength) {
+        maxLength = currentLength;
+    }
+
+    return maxLength;
+}
+
+int main() {
+    std::string s;
+    std::getline(std::cin, s);
+    
+    int result = LongestConsecutiveCharacter(s);
+    std::cout << result << std::endl;
+    
+    return 0;
+}
