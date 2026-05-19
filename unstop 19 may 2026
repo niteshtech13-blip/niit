@@ -1,0 +1,43 @@
+#include <iostream>
+#include <vector>
+
+using namespace std;
+
+int main() {
+    int N;
+    if (!(cin >> N)) return 0;
+
+    long long MOD = 1000000007;
+
+    vector<bool> isPrime(N + 1, true);
+    if (N >= 0) isPrime[0] = false;
+    if (N >= 1) isPrime[1] = false;
+
+    int primeCount = 0;
+    for (int i = 2; i <= N; ++i) {
+        if (isPrime[i]) {
+            primeCount++;
+            for (int j = 2 * i; j <= N; j += i) {
+                isPrime[j] = false;
+            }
+        }
+    }
+
+    int nonPrimeCount = N - primeCount;
+
+    long long factPrimes = 1;
+    for (int i = 1; i <= primeCount; ++i) {
+        factPrimes = (factPrimes * i) % MOD;
+    }
+
+    long long factNonPrimes = 1;
+    for (int i = 1; i <= nonPrimeCount; ++i) {
+        factNonPrimes = (factNonPrimes * i) % MOD;
+    }
+
+    long long totalWays = (factPrimes * factNonPrimes) % MOD;
+
+    cout << totalWays << endl;
+
+    return 0;
+}
