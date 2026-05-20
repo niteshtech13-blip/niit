@@ -1,0 +1,55 @@
+#include <iostream>
+using namespace std;
+
+string user_logic(int N);
+
+int main() {
+    int N;
+    cin >> N;
+    string result = user_logic(N);
+    cout << result << endl;
+    return 0;
+}
+
+string user_logic(int N) {
+    if (N <= 0) {
+        return "1";
+    }
+
+    long long MOD = 1000000007;
+
+    long long countA = 1;
+    long long countE = 1;
+    long long countI = 1;
+    long long countO = 1;
+    long long countU = 1;
+
+    for (int i = 2; i <= N; ++i) {
+        long long nextA = (countE + countU) % MOD;
+        long long nextE = (countA + countI) % MOD;
+        long long nextI = (countE + countO) % MOD;
+        long long nextO = (countI + countU) % MOD;
+        long long nextU = (countA + countO) % MOD;
+
+        countA = nextA;
+        countE = nextE;
+        countI = nextI;
+        countO = nextO;
+        countU = nextU;
+    }
+
+    long long totalCount = (countA + countE + countI + countO + countU) % MOD;
+
+    if (totalCount == 0) {
+        return "0";
+    }
+
+    string octalString = "";
+    while (totalCount > 0) {
+        char digit = '0' + (totalCount % 8);
+        octalString = digit + octalString;
+        totalCount /= 8;
+    }
+
+    return octalString;
+}
