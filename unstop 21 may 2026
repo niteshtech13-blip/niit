@@ -1,0 +1,76 @@
+#include <iostream>
+#include <string>
+#include <vector>
+#include <climits>
+
+int shortest_substring_length(const std::string &S, const std::string &L) {
+    if (S.empty() || L.empty() || S.length() < L.length()) {
+        return -1;
+    }
+
+    std::vector<int> target_counts(256, 0);
+    int required_chars_count = 0;
+    
+    for (char c : L) {
+        if (target_counts[static_cast<unsigned char>(c)] == 0) {
+            required_chars_count++;
+        }
+        target_counts[static_cast<unsigned char>(c)]++;
+    }
+
+    std::vector<int> window_counts(256, 0);
+    int formed_chars_count = 0;
+    int left = 0;
+    int min_len = INT_MAX;
+
+    for (int right = 0; right < S.length(); right++) {
+        char current_char = S[right];
+        unsigned char u_char = static_cast<unsigned char>(current_char);
+
+        if (target_counts[u_char] > 0) {
+            window_counts[u_char]++;
+            if (window_counts[u_char] == target_counts[u_char]) {
+                formed_chars_count++;
+            }
+        }
+
+        while (formed_chars_count == required_chars_count) {
+            int current_window_len = right - left + 1;
+            if (current_window_len < min_len) {
+                min_len = current_window_len;
+            }
+
+            char left_char = S[left];
+            unsigned char u_left_char = static_cast<unsigned char>(left_char);
+
+            if (target_counts[u_left_char] > 0) {
+                if (window_counts[u_left_char] == target_counts[u_left_char]) {
+                    formed_chars_count--;
+                }
+                window_counts[u_left_char]--;
+            }
+            left++;
+        }
+    }
+
+    return (min_len == INT_MAX) ? -1 : min_len;
+}
+
+int main() {
+    std::string S;
+    std::string L;
+
+    if (std::getline(std::cin, S) && std::getline(std::cin, L)) {
+        if (!S.empty() && S.back() == '\r') {
+            S.pop_back();
+        }
+        if (!L.empty() && L.back() == '\r') {
+            L.pop_back();
+        }
+
+        int result = shortest_substring_length(S, L);
+        std::cout << result << std::endl;
+    }
+
+    return 0;
+}
