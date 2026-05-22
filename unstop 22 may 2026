@@ -1,0 +1,56 @@
+#include <iostream>
+#include <vector>
+
+void is_game_winnable(int N, const std::string& s, int q, const std::vector<std::pair<int, int>>& controllers) {
+    long long countPlus = 0;
+    long long countMinus = 0;
+
+    for (char ch : s) {
+        if (ch == '+') {
+            countPlus++;
+        } else {
+            countMinus++;
+        }
+    }
+
+    for (int i = 0; i < q; ++i) {
+        long long A = controllers[i].first;
+        long long B = controllers[i].second;
+
+        if (A == B) {
+            if (countPlus == countMinus) {
+                std::cout << "YES" << std::endl;
+            } else {
+                std::cout << "NO" << std::endl;
+            }
+        } else {
+            long long numerator = (countMinus - countPlus) * B;
+            long long denominator = A - B;
+
+            if (numerator % denominator == 0) {
+                long long k = numerator / denominator;
+                if (k >= -countMinus && k <= countPlus) {
+                    std::cout << "YES" << std::endl;
+                } else {
+                    std::cout << "NO" << std::endl;
+                }
+            } else {
+                std::cout << "NO" << std::endl;
+            }
+        }
+    }
+}
+
+int main() {
+    int N, q;
+    std::cin >> N;
+    std::string s;
+    std::cin >> s;
+    std::cin >> q;
+    std::vector<std::pair<int, int>> controllers(q);
+    for (int i = 0; i < q; ++i) {
+        std::cin >> controllers[i].first >> controllers[i].second;
+    }
+    is_game_winnable(N, s, q, controllers);
+    return 0;
+}
