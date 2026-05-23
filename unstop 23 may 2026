@@ -1,0 +1,70 @@
+#include <iostream>
+#include <vector>
+using namespace std;
+
+int user_logic(int n, int s, vector<int>& arr) {
+    vector<vector<int>> positions(s + 1);
+    for (int i = 0; i < n; i++) {
+        if (arr[i] <= s) {
+            positions[arr[i]].push_back(i);
+        }
+    }
+
+    vector<int> dp(s + 1, 0);
+    dp[0] = 0;
+
+    for (int w = 1; w <= s; w++) {
+        int maxIndexRequired = 0;
+        for (int v = 1; v <= w; v++) {
+            if (positions[v].empty()) {
+                continue;
+            }
+
+            int previousPos = dp[w - v];
+            int currentPeriodOffset = previousPos % n;
+            int totalFullPeriods = previousPos / n;
+
+            int nextIndexInPeriod = -1;
+            auto& posList = positions[v];
+            
+            int low = 0;
+            int high = posList.size() - 1;
+            int foundIdx = -1;
+            while (low <= high) {
+                int mid = low + (high - low) / 2;
+                if (posList[mid] >= currentPeriodOffset) {
+                    foundIdx = mid;
+                    high = mid - 1;
+                } else {
+                    low = mid + 1;
+                }
+            }
+
+            int nextAbsolutePos = 0;
+            if (foundIdx != -1) {
+                nextAbsolutePos = totalFullPeriods * n + posList[foundIdx] + 1;
+            } else {
+                nextAbsolutePos = (totalFullPeriods + 1) * n + posList[0] + 1;
+            }
+
+            if (nextAbsolutePos > maxIndexRequired) {
+                maxIndexRequired = nextAbsolutePos;
+            }
+        }
+        dp[w] = maxIndexRequired;
+    }
+
+    return dp[s];
+}
+
+int main() {
+    int n, s;
+    cin >> n >> s;
+    vector<int> arr(n);
+    for (int i = 0; i < n; i++) {
+        cin >> arr[i];
+    }
+    int result = user_logic(n, s, arr);
+    cout << result << endl;
+    return 0;
+}
