@@ -1,0 +1,35 @@
+#include <iostream>
+#include <string>
+
+using namespace std;
+
+int user_logic(const string& s) {
+    int happyCount = 0;
+    int sadCount = 0;
+    size_t length = s.length();
+
+    for (size_t i = 0; i + 1 < length; ) {
+        if (s[i] == ':' && s[i + 1] == ')') {
+            happyCount++;
+            i += 2;
+        } else if (s[i] == ':' && s[i + 1] == '(') {
+            sadCount++;
+            i += 2;
+        } else {
+            i++;
+        }
+    }
+
+    int pairs = (happyCount < sadCount) ? happyCount : sadCount;
+    return pairs * 2;
+}
+
+int main() {
+    string s;
+    getline(cin, s);
+
+    int result = user_logic(s);
+    cout << result << endl;
+
+    return 0;
+}
