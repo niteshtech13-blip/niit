@@ -1,0 +1,46 @@
+#include <iostream>
+#include <string>
+
+void collapse_chain(std::string &s) {
+    std::string remainingChain = "";
+
+    for (char character : s) {
+        int currentEnergy = 0;
+        if (character >= 'a' && character <= 'z') {
+            currentEnergy = character - 'a' + 1;
+        } else if (character >= '0' && character <= '9') {
+            currentEnergy = (character - '0') * 10;
+        }
+
+        if (!remainingChain.empty()) {
+            char lastChar = remainingChain.back();
+            int lastEnergy = 0;
+            if (lastChar >= 'a' && lastChar <= 'z') {
+                lastEnergy = lastChar - 'a' + 1;
+            } else if (lastChar >= '0' && lastChar <= '9') {
+                lastEnergy = (lastChar - '0') * 10;
+            }
+
+            if (currentEnergy == lastEnergy) {
+                remainingChain.pop_back();
+            } else {
+                remainingChain.push_back(character);
+            }
+        } else {
+            remainingChain.push_back(character);
+        }
+    }
+
+    if (remainingChain.empty()) {
+        std::cout << "-1" << std::endl;
+    } else {
+        std::cout << remainingChain << std::endl;
+    }
+}
+
+int main() {
+    std::string s;
+    std::getline(std::cin, s);
+    collapse_chain(s);
+    return 0;
+}
