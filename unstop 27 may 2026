@@ -1,0 +1,63 @@
+#include <stdio.h>
+
+void compute_max_intensity_after_k_hours(int N, int intensities[], int K, int queries[][2], int Q) {
+    int currentIntensities[N];
+    int nextIntensities[N];
+
+    for (int i = 0; i < N; i++) {
+        currentIntensities[i] = intensities[i];
+    }
+
+    for (int hour = 0; hour < K; hour++) {
+        if (N == 1) {
+            break;
+        }
+
+        nextIntensities[0] = currentIntensities[1];
+        nextIntensities[N - 1] = currentIntensities[N - 2];
+
+        for (int i = 1; i < N - 1; i++) {
+            nextIntensities[i] = (currentIntensities[i - 1] + currentIntensities[i + 1]) / 2;
+        }
+
+        for (int i = 0; i < N; i++) {
+            currentIntensities[i] = nextIntensities[i];
+        }
+    }
+
+    for (int q = 0; q < Q; q++) {
+        int leftIndex = queries[q][0] - 1;
+        int rightIndex = queries[q][1] - 1;
+
+        int maxVal = currentIntensities[leftIndex];
+        for (int i = leftIndex + 1; i <= rightIndex; i++) {
+            if (currentIntensities[i] > maxVal) {
+                maxVal = currentIntensities[i];
+            }
+        }
+        printf("%d\n", maxVal);
+    }
+}
+
+int main() {
+    int N;
+    scanf("%d", &N);
+    int intensities[N];
+    for (int i = 0; i < N; i++) {
+        scanf("%d", &intensities[i]);
+    }
+
+    int K;
+    scanf("%d", &K);
+    
+    int Q;
+    scanf("%d", &Q);
+    int queries[Q][2];
+    for (int i = 0; i < Q; i++) {
+        scanf("%d %d", &queries[i][0], &queries[i][1]);
+    }
+
+    compute_max_intensity_after_k_hours(N, intensities, K, queries, Q);
+
+    return 0;
+}
