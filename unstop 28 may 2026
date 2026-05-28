@@ -1,0 +1,64 @@
+#include <iostream>
+#include <vector>
+#include <algorithm>
+
+int max_remaining_sum(int N, std::vector<int>& A, std::vector<std::vector<int>>& T) {
+    std::vector<int> min_time(N, 1e9);
+    for (int j = 0; j < N; ++j) {
+        for (int i = 0; i < j; ++i) {
+            if (A[i] > A[j]) {
+                if (T[i][j] < min_time[j]) {
+                    min_time[j] = T[i][j];
+                }
+            }
+        }
+    }
+
+    std::vector<std::pair<int, int>> removable;
+    int total_sum = 0;
+    for (int i = 0; i < N; ++i) {
+        total_sum += A[i];
+        if (min_time[i] != 1e9) {
+            removable.push_back({A[i], min_time[i]});
+        }
+    }
+
+    std::sort(removable.begin(), removable.end(), [](const std::pair<int, int>& a, const std::pair<int, int>& b) {
+        return a.first > b.first;
+    });
+
+    std::vector<bool> time_slots(20005, false);
+    int removed_sum = 0;
+
+    for (const auto& item : removable) {
+        int val = item.first;
+        int start_t = item.second;
+        for (int t = start_t; t < 20005; ++t) {
+            if (!time_slots[t]) {
+                time_slots[t] = true;
+                removed_sum += val;
+                break;
+            }
+        }
+    }
+
+    return total_sum - removed_sum;
+}
+
+int main() {
+    int N;
+    std::cin >> N;
+    std::vector<int> A(N);
+    for (int i = 0; i < N; ++i) {
+        std::cin >> A[i];
+    }
+    std::vector<std::vector<int>> T(N, std::vector<int>(N));
+    for (int i = 0; i < N; ++i) {
+        for (int j = 0; j < N; ++j) {
+            std::cin >> T[i][j];
+        }
+    }
+    int result = max_remaining_sum(N, A, T);
+    std::cout << result << std::endl;
+    return 0;
+}
