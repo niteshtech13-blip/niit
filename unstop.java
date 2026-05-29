@@ -1,0 +1,101 @@
+import java.util.*;
+
+public class Main {
+
+   
+    public static int largestSCC(int N, List<int[]> edges) {
+
+        List<List<Integer>> graph = new ArrayList<>();
+        List<List<Integer>> reverseGraph = new ArrayList<>();
+
+        for (int i = 0; i <= N; i++) {
+            graph.add(new ArrayList<>());
+            reverseGraph.add(new ArrayList<>());
+        }
+
+      
+        for (int[] edge : edges) {
+            int u = edge[0];
+            int v = edge[1];
+
+            graph.get(u).add(v);
+            reverseGraph.get(v).add(u);
+        }
+
+        boolean[] visited = new boolean[N + 1];
+        Stack<Integer> stack = new Stack<>();
+
+       
+        for (int i = 1; i <= N; i++) {
+            if (!visited[i]) {
+                dfs1(i, graph, visited, stack);
+            }
+        }
+
+        Arrays.fill(visited, false);
+
+        int maxSize = 0;
+
+        while (!stack.isEmpty()) {
+            int node = stack.pop();
+
+            if (!visited[node]) {
+                int size = dfs2(node, reverseGraph, visited);
+                maxSize = Math.max(maxSize, size);
+            }
+        }
+
+        return maxSize;
+    }
+
+   
+    private static void dfs1(int node, List<List<Integer>> graph,
+                             boolean[] visited, Stack<Integer> stack) {
+
+        visited[node] = true;
+
+        for (int neighbor : graph.get(node)) {
+            if (!visited[neighbor]) {
+                dfs1(neighbor, graph, visited, stack);
+            }
+        }
+
+        stack.push(node);
+    }
+
+    
+    private static int dfs2(int node, List<List<Integer>> reverseGraph,
+                            boolean[] visited) {
+
+        visited[node] = true;
+        int count = 1;
+
+        for (int neighbor : reverseGraph.get(node)) {
+            if (!visited[neighbor]) {
+                count += dfs2(neighbor, reverseGraph, visited);
+            }
+        }
+
+        return count;
+    }
+
+    public static void main(String[] args) {
+        Scanner scanner = new Scanner(System.in);
+
+        int N = scanner.nextInt();
+        int M = scanner.nextInt();
+
+        List<int[]> edges = new ArrayList<>();
+
+        for (int i = 0; i < M; ++i) {
+            int A = scanner.nextInt();
+            int B = scanner.nextInt();
+            edges.add(new int[]{A, B});
+        }
+
+        int result = largestSCC(N, edges);
+        System.out.println(result);
+
+        scanner.close();
+    }
+}
