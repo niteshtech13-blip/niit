@@ -1,0 +1,79 @@
+#include <iostream>
+#include <vector>
+#include <queue>
+#include <algorithm>
+
+void chrono_locked_upgrade(int n, int m, std::vector<int>& chrono_lock, std::vector<std::pair<int, int>>& edges) {
+    std::vector<std::vector<int>> graph(n);
+    std::vector<int> indegree(n, 0);
+    std::vector<long long> upgrade_time(n, 0);
+
+    for (auto& edge : edges) {
+        int u = edge.first - 1;
+        int v = edge.second - 1;
+        graph[u].push_back(v);
+        indegree[v]++;
+    }
+
+    std::queue<int> futuristic_queue;
+
+    for (int i = 0; i < n; i++) {
+        if (indegree[i] == 0) {
+            upgrade_time[i] = std::max(1LL, (long long)chrono_lock[i]);
+            futuristic_queue.push(i);
+        }
+    }
+
+    int upgraded_modules = 0;
+    long long max_upgrade_time = 0;
+
+    while (!futuristic_queue.empty()) {
+        int current = futuristic_queue.front();
+        futuristic_queue.pop();
+
+        upgraded_modules++;
+        max_upgrade_time = std::max(max_upgrade_time, upgrade_time[current]);
+
+        for (int next : graph[current]) {
+            upgrade_time[next] = std::max(
+                upgrade_time[next],
+                std::max(upgrade_time[current] + 1, (long long)chrono_lock[next])
+            );
+
+            indegree[next]--;
+
+            if (indegree[next] == 0) {
+                if (upgrade_time[next] == 0) {
+                    upgrade_time[next] = std::max(1LL, (long long)chrono_lock[next]);
+                }
+                futuristic_queue.push(next);
+            }
+        }
+    }
+
+    if (upgraded_modules != n) {
+        std::cout << "CYCLE DETECTED" << '\n';
+        return;
+    }
+
+    std::cout << max_upgrade_time << '\n';
+}
+
+int main() {
+    int n, m;
+    std::cin >> n >> m;
+
+    std::vector<int> chrono_lock(n);
+    for (int i = 0; i < n; i++) {
+        std::cin >> chrono_lock[i];
+    }
+
+    std::vector<std::pair<int, int>> edges(m);
+    for (int i = 0; i < m; i++) {
+        std::cin >> edges[i].first >> edges[i].second;
+    }
+
+    chrono_locked_upgrade(n, m, chrono_lock, edges);
+
+    return 0;
+}
