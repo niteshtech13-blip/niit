@@ -1,0 +1,47 @@
+#include <iostream>
+#include <vector>
+#include <unordered_map>
+
+using namespace std;
+
+int count_divisible_subarrays(int n, int k, const vector<int>& arr) {
+    long long MOD = 1000000007;
+    unordered_map<int, int> remainder_counts;
+    remainder_counts[0] = 1;
+    
+    long long running_sum = 0;
+    long long valid_subarray_count = 0;
+    
+    for (int i = 0; i < n; i++) {
+        running_sum += arr[i];
+        int remainder = running_sum % k;
+        
+        if (remainder < 0) {
+            remainder += k;
+        }
+        
+        if (remainder_counts.find(remainder) != remainder_counts.end()) {
+            valid_subarray_count = (valid_subarray_count + remainder_counts[remainder]) % MOD;
+        }
+        
+        remainder_counts[remainder]++;
+    }
+    
+    return valid_subarray_count;
+}
+
+int main() {
+    int n, k;
+    cin >> n >> k;
+    vector<int> arr(n);
+    
+    for (int i = 0; i < n; i++) {
+        cin >> arr[i];
+    }
+    
+    int result = count_divisible_subarrays(n, k, arr);
+    
+    cout << result << endl;
+    
+    return 0;
+}
