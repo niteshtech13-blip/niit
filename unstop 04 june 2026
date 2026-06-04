@@ -1,0 +1,60 @@
+class TreeNode {
+    constructor(val = 0, left = null, right = null) {
+        this.val = val;
+        this.left = left;
+        this.right = right;
+    }
+}
+
+function user_logic(t, test_cases) {
+    let results = [];
+
+    for (let [N, arr] of test_cases) {
+        let preorder = [];
+
+        function dfs(index) {
+            if (index >= arr.length) return;
+
+            preorder.push(arr[index]);
+
+            // After pruning, only left child remains
+            dfs(2 * index + 1);
+        }
+
+        dfs(0);
+
+        results.push(preorder.join(" "));
+    }
+
+    return results;
+}
+
+function main() {
+    const input = require('fs')
+        .readFileSync('/dev/stdin', 'utf8')
+        .trim()
+        .split(/\s+/);
+
+    let index = 0;
+    const t = parseInt(input[index++], 10);
+
+    const test_cases = [];
+
+    for (let i = 0; i < t; i++) {
+        const N = parseInt(input[index++], 10);
+
+        const number_of_nodes = (1 << N) - 1;
+        const arr = [];
+
+        for (let j = 0; j < number_of_nodes; j++) {
+            arr.push(parseInt(input[index++], 10));
+        }
+
+        test_cases.push([N, arr]);
+    }
+
+    const results = user_logic(t, test_cases);
+    console.log(results.join('\n'));
+}
+
+main();
