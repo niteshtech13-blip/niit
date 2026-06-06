@@ -1,0 +1,32 @@
+function decode_message(S) {
+    let decoded = "";
+
+    let idx = S.length - 1;
+
+    while (idx >= 0) {
+        if (S[idx] === '#') {
+            const value =
+                (S.charCodeAt(idx - 2) - 48) * 10 +
+                (S.charCodeAt(idx - 1) - 48);
+
+            decoded = String.fromCharCode(value + 96) + decoded;
+            idx -= 3;
+        } else {
+            const value = S.charCodeAt(idx) - 48;
+
+            decoded = String.fromCharCode(value + 96) + decoded;
+            idx--;
+        }
+    }
+
+    console.log(decoded);
+}
+
+function main() {
+    const fs = require("fs");
+    const input = fs.readFileSync(0, "utf8").trim();
+
+    decode_message(input);
+}
+
+main();
