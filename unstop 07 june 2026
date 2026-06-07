@@ -1,0 +1,48 @@
+function specialmsg(s, vocab) {
+    const mp = {};
+
+    for (let i = 0; i < vocab.length; i++) {
+        mp[vocab[i][0]] = vocab[i][1];
+    }
+
+    let ans = "";
+    let token = "";
+    let inside = false;
+
+    for (const ch of s) {
+        if (ch === "(") {
+            inside = true;
+            token = "";
+        } else if (ch === ")") {
+            ans += (token in mp) ? mp[token] : "?";
+            inside = false;
+        } else {
+            if (inside) {
+                token += ch;
+            } else {
+                ans += ch;
+            }
+        }
+    }
+
+    return ans;
+}
+
+function main() {
+    const fs = require("fs");
+    const lines = fs.readFileSync(0, "utf8").trim().split("\n");
+
+    const s = lines[0];
+    const n = parseInt(lines[1], 10);
+
+    const vocab = [];
+
+    for (let i = 0; i < n; i++) {
+        const [key, value] = lines[i + 2].trim().split(" ");
+        vocab.push([key, value]);
+    }
+
+    console.log(specialmsg(s, vocab));
+}
+
+main();
