@@ -1,0 +1,63 @@
+#include<bits/stdc++.h>
+using namespace std;
+
+struct Tower {
+    long long signal;
+    int left;
+    int right;
+};
+
+vector<Tower> towers;
+int peakCount = 0;
+
+// DFS to find max signal in subtree
+// Returns -1 if node doesn't exist, otherwise returns max signal in subtree
+long long dfs(int idx) {
+    // Base case: non-existent node
+    if (idx == -1) return -1;
+    
+    Tower& node = towers[idx];
+    
+    // Recursively get max from left and right subtrees
+    long long maxLeft = dfs(node.left);
+    long long maxRight = dfs(node.right);
+    
+    // Find max among descendants
+    long long maxDescendants = max(maxLeft, maxRight);
+    
+    // Check if current node is Peak Relay
+    // Peak Relay: signal > all descendants OR no descendants (leaf)
+    if (maxDescendants == -1 || node.signal > maxDescendants) {
+        peakCount++;
+    }
+    
+    // Return max signal in entire subtree (including current node)
+    if (maxDescendants == -1) {
+        // Leaf node case
+        return node.signal;
+    }
+    return max(node.signal, maxDescendants);
+}
+
+int main() {
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+    
+    int n;
+    cin >> n;
+    
+    towers.resize(n);
+    
+    // Read tower data
+    for (int i = 0; i < n; i++) {
+        cin >> towers[i].signal >> towers[i].left >> towers[i].right;
+    }
+    
+    // Start DFS from root (tower 0)
+    dfs(0);
+    
+    // Output result
+    cout << peakCount << endl;
+    
+    return 0;
+}
