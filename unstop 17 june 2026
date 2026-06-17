@@ -1,0 +1,37 @@
+#include <iostream>
+#include <vector>
+using namespace std;
+
+int find_lucky_stone_pairs(int p, int n, int m, std::vector<int>& stones) {
+    int count = 0;
+    
+    // Check all pairs (i, j) where i < j
+    for (int i = 0; i < p; i++) {
+        for (int j = i + 1; j < p; j++) {
+            // Check if both stones are divisible by N or M
+            bool stone_i_valid = (stones[i] % n == 0) || (stones[i] % m == 0);
+            bool stone_j_valid = (stones[j] % n == 0) || (stones[j] % m == 0);
+            
+            if (stone_i_valid && stone_j_valid) {
+                count++;
+            }
+        }
+    }
+    
+    return count;
+}
+
+int main() {
+    int p, n, m;
+    cin >> p >> n >> m;
+    
+    std::vector<int> stones(p);
+    for (int i = 0; i < p; i++) {
+        cin >> stones[i];
+    }
+    
+    int result = find_lucky_stone_pairs(p, n, m, stones);
+    std::cout << result << std::endl;
+    
+    return 0;
+}
