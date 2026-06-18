@@ -1,0 +1,42 @@
+#include <cmath>
+#include <cstdio>
+#include <vector>
+#include <iostream>
+#include <algorithm>
+#include <unordered_map>
+#include <climits>
+
+using namespace std;
+
+int main() {
+    int n;
+    cin >> n;
+    
+    // Map to store frequency of each book ID
+    unordered_map<int, int> freq;
+    int maxFreq = 0;
+    int resultBookID = INT_MAX;
+    
+    // Read book IDs and count frequencies
+    for (int i = 0; i < n; i++) {
+        int bookID;
+        cin >> bookID;
+        freq[bookID]++;
+    }
+    
+    // Find the book with maximum frequency
+    // If tied, find the smallest book ID
+    for (auto& pair : freq) {
+        int bookID = pair.first;
+        int count = pair.second;
+        
+        if (count > maxFreq || (count == maxFreq && bookID < resultBookID)) {
+            maxFreq = count;
+            resultBookID = bookID;
+        }
+    }
+    
+    cout << resultBookID << endl;
+    
+    return 0;
+}
