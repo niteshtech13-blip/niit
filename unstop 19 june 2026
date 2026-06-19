@@ -1,0 +1,78 @@
+#include <iostream>
+#include <vector>
+#include <string>
+#include <queue>
+#include <climits>
+#include <utility>
+
+using namespace std;
+
+int calculateDecodeTime(const string& s) {
+    int total = 0;
+    for (char c : s) {
+        total += (c - 'a' + 1);
+    }
+    return total;
+}
+
+int chronoShortestPath(int n, vector<string>& S, vector<vector<pair<int, int>>>& adj, int start, int end) {
+    // Calculate decode costs for each node
+    vector<long long> decodeCost(n + 1);
+    for (int i = 1; i <= n; i++) {
+        decodeCost[i] = calculateDecodeTime(S[i - 1]);
+    }
+    
+    // Dijkstra's algorithm
+    vector<long long> dist(n + 1, LLONG_MAX);
+    priority_queue<pair<long long, int>, vector<pair<long long, int>>, greater<pair<long long, int>>> pq;
+    
+    dist[start] = decodeCost[start];
+    pq.push({dist[start], start});
+    
+    while (!pq.empty()) {
+        auto [d, u] = pq.top();
+        pq.pop();
+        
+        if (d > dist[u]) continue;
+        
+        for (auto [v, edgeTime] : adj[u]) {
+            long long newDist = dist[u] + edgeTime + decodeCost[v];
+            if (newDist < dist[v]) {
+                dist[v] = newDist;
+                pq.push({dist[v], v});
+            }
+        }
+    }
+    
+    return (dist[end] == LLONG_MAX) ? -1 : dist[end];
+}
+
+int main() {
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+    
+    int N, M;
+    cin >> N >> M;
+    cin.ignore();
+    
+    vector<string> S(N);
+    for (int i = 0; i < N; i++) {
+        getline(cin, S[i]);
+    }
+    
+    vector<vector<pair<int, int>>> adj(N + 1);
+    for (int i = 0; i < M; i++) {
+        int u, v, T;
+        cin >> u >> v >> T;
+        adj[u].emplace_back(v, T);
+        adj[v].emplace_back(u, T);
+    }
+    
+    int start, end;
+    cin >> start >> end;
+    
+    int result = chronoShortestPath(N, S, adj, start, end);
+    cout << result << endl;
+    
+    return 0;
+}
