@@ -1,0 +1,53 @@
+function getRabbitTime(n, tw) {
+    let time = 0;
+    let pos = 0;
+
+    const activated = new Set();
+
+    while (pos < n - 1) {
+
+        if (!activated.has(pos)) {
+            activated.add(pos);
+
+            if (tw[pos] > 0) {
+                time += tw[pos];
+            } else if (tw[pos] === -1) {
+                time++;
+                pos = pos > 0 ? pos - 1 : 0;
+                continue;
+            }
+        }
+
+        time++;
+        pos += 2;
+    }
+
+    return time;
+}
+
+function raceWinner(n, tw) {
+    const rabbitTime = getRabbitTime(n, tw);
+    const tortoiseTime = n - 1;
+
+    if (rabbitTime < tortoiseTime) {
+        return "Rabbit";
+    }
+
+    if (rabbitTime > tortoiseTime) {
+        return "Tortoise";
+    }
+
+    return "Tie";
+}
+
+function main() {
+    const fs = require("fs");
+    const input = fs.readFileSync(0, "utf8").trim().split("\n");
+
+    const n = Number(input[0]);
+    const tw = input[1].trim().split(/\s+/).map(Number);
+
+    console.log(raceWinner(n, tw));
+}
+
+main();
