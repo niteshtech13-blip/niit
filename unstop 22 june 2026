@@ -1,0 +1,79 @@
+function talentBurst(arr) {
+    const n = arr.length;
+
+    const prime = (x) => {
+        if (x < 2) return false;
+        for (let i = 2; i * i <= x; i++) {
+            if (x % i === 0) return false;
+        }
+        return true;
+    };
+
+    const values = new Array(n + 2);
+    values[0] = 1;
+    values[n + 1] = 1;
+
+    for (let i = 0; i < n; i++) {
+        values[i + 1] = arr[i];
+    }
+
+    const bonus = new Array(n + 2).fill(0);
+    for (let i = 1; i <= n; i++) {
+        if (prime(values[i])) {
+            bonus[i] = values[i];
+        }
+    }
+
+    const dp = Array.from(
+        { length: n + 2 },
+        () => Array(n + 2).fill(0)
+    );
+
+    for (let size = 1; size <= n; size++) {
+
+        for (let l = 1; l + size - 1 <= n; l++) {
+
+            const r = l + size - 1;
+
+            let answer = 0;
+
+            for (let k = l; k <= r; k++) {
+
+                const leftPart = dp[l][k - 1];
+                const rightPart = dp[k + 1][r];
+
+                const currentGain =
+                    (values[l - 1] + 2) *
+                    values[k] *
+                    (values[r + 1] + 2) +
+                    bonus[k];
+
+                answer = Math.max(
+                    answer,
+                    leftPart + rightPart + currentGain
+                );
+            }
+
+            dp[l][r] = answer;
+        }
+    }
+
+    return dp[1][n];
+}
+
+function main() {
+    const fs = require("fs");
+
+    const data = fs
+        .readFileSync(0, "utf8")
+        .trim()
+        .split(/\s+/)
+        .map(Number);
+
+    const n = data[0];
+    const arr = data.slice(1, n + 1);
+
+    console.log(talentBurst(arr));
+}
+
+main();
