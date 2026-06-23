@@ -1,0 +1,81 @@
+#include <iostream>
+#include <vector>
+#include <queue>
+#include <climits>
+using namespace std;
+
+int min_delivery_energy(const vector<vector<int>>& grid) {
+    int N = grid.size();
+    int M = grid[0].size();
+    
+    // Distance matrix to track minimum cost to reach each cell
+    vector<vector<long long>> dist(N, vector<long long>(M, LLONG_MAX));
+    
+    // Priority queue: {cost, {row, col}}
+    priority_queue<pair<long long, pair<int, int>>, 
+                   vector<pair<long long, pair<int, int>>>, 
+                   greater<pair<long long, pair<int, int>>>> pq;
+    
+    // Start from (0, 0)
+    dist[0][0] = grid[0][0];
+    pq.push({grid[0][0], {0, 0}});
+    
+    // Directions: up, down, left, right
+    int dx[] = {-1, 1, 0, 0};
+    int dy[] = {0, 0, -1, 1};
+    
+    while (!pq.empty()) {
+        auto [cost, pos] = pq.top();
+        pq.pop();
+        
+        int x = pos.first;
+        int y = pos.second;
+        
+        // Skip if we've already found a better path
+        if (cost > dist[x][y]) continue;
+        
+        // Try all 4 directions
+        for (int i = 0; i < 4; i++) {
+            int nx = x + dx[i];
+            int ny = y + dy[i];
+            
+            // Check bounds and restricted zones (-1)
+            if (nx >= 0 && nx < N && ny >= 0 && ny < M && grid[nx][ny] != -1) {
+                long long newCost = cost + grid[nx][ny];
+                
+                // Update if we found a better path
+                if (newCost < dist[nx][ny]) {
+                    dist[nx][ny] = newCost;
+                    pq.push({newCost, {nx, ny}});
+                }
+            }
+        }
+    }
+    
+    // Return result
+    if (dist[N-1][M-1] == LLONG_MAX) {
+        return -1;  // Unreachable
+    }
+    
+    return dist[N-1][M-1];
+}
+
+int main() {
+    int N, M;
+    cin >> N >> M;
+    
+    vector<vector<int>> grid(N, vector<int>(M));
+    
+    // Read the grid
+    for (int i = 0; i < N; i++) {
+        for (int j = 0; j < M; j++) {
+            cin >> grid[i][j];
+        }
+    }
+    
+    // Call the user logic function and print result
+    int result = min_delivery_energy(grid);
+    cout << result << endl;
+    
+    return 0;
+}
