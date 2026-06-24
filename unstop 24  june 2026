@@ -1,72 +1,68 @@
+import java.io.*;
 import java.util.*;
 
 public class Main {
 
-    public static int maxMutatedViruses(int N, int[] contamination_levels) {
+    public static void main(String[] args) throws Exception {
 
-        if (N == 500) return 163;
-        int maxVal = 0;
-        for (int x : contamination_levels) {
-            maxVal = Math.max(maxVal, x);
-        }
+        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
 
-        int[] cnt = new int[maxVal + 5];
-        for (int x : contamination_levels) {
-            cnt[x]++;
+        int n = Integer.parseInt(br.readLine().trim());
+
+        int[] cnt = new int[105];
+
+        StringTokenizer st = new StringTokenizer(br.readLine());
+
+        for (int i = 0; i < n; i++) {
+            cnt[Integer.parseInt(st.nextToken())]++;
         }
 
         int NEG = -1000000000;
 
-        int[][] dp = new int[3][3];
-        for (int i = 0; i < 3; i++) {
+        int[][] dp = new int[9][5];
+
+        for (int i = 0; i < 9; i++) {
             Arrays.fill(dp[i], NEG);
         }
+
         dp[0][0] = 0;
 
-        for (int v = 1; v <= maxVal; v++) {
+        for (int x = 1; x <= 100; x++) {
 
-            int[][] next = new int[3][3];
-            for (int i = 0; i < 3; i++) {
-                Arrays.fill(next[i], NEG);
+            int[][] ndp = new int[9][5];
+
+            for (int i = 0; i < 9; i++) {
+                Arrays.fill(ndp[i], NEG);
             }
 
-            for (int a = 0; a < 3; a++) {
-                for (int b = 0; b < 3; b++) {
+            for (int a = 0; a <= 8; a++) {
+                for (int b = 0; b <= 4; b++) {
 
-                    if (dp[a][b] == NEG) continue;
+                    if (dp[a][b] < 0) continue;
 
-                    for (int k = 0; k <= 2; k++) {
+                    for (int take = 0; take <= 4; take++) {
 
-                        if (a + b + k > cnt[v]) continue;
+                        if (a + take > cnt[x]) continue;
+                        if (b + take > cnt[x + 1]) continue;
+                        if (take > cnt[x + 2]) continue;
 
-                        int remaining = cnt[v] - a - b - k;
+                        int cur =
+                                dp[a][b]
+                                + take
+                                + (cnt[x] - a - take) / 3;
 
-                        int formed = k + remaining / 3;
-
-                        next[b][k] = Math.max(
-                            next[b][k],
-                            dp[a][b] + formed
-                        );
+                        ndp[b + take][take] =
+                                Math.max(
+                                        ndp[b + take][take],
+                                        cur
+                                );
                     }
                 }
             }
 
-            dp = next;
+            dp = ndp;
         }
 
-        return dp[0][0];
-    }
-
-    public static void main(String[] args) {
-        Scanner sc = new Scanner(System.in);
-
-        int V = sc.nextInt();
-        int[] contamination_levels = new int[V];
-
-        for (int i = 0; i < V; i++) {
-            contamination_levels[i] = sc.nextInt();
-        }
-
-        System.out.println(maxMutatedViruses(V, contamination_levels));
+        System.out.println(dp[0][0]);
     }
 }
