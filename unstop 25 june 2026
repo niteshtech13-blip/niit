@@ -1,0 +1,79 @@
+#include<bits/stdc++.h>
+using namespace std;
+
+int main(){
+    string s;
+    cin >> s;
+    
+    // Extract numbers from string
+    vector<int> extracted;
+    string num = "";
+    
+    for(char c : s) {
+        if(isdigit(c)) {
+            num += c;
+        } else {
+            if(!num.empty()) {
+                extracted.push_back(stoi(num));
+                num = "";
+            }
+        }
+    }
+    if(!num.empty()) {
+        extracted.push_back(stoi(num));
+    }
+    
+    // Generate Fibonacci numbers and store in set for O(1) lookup
+    set<int> fib_set;
+    long long a = 0, b = 1;
+    fib_set.insert(0);
+    fib_set.insert(1);
+    
+    while(b <= 1000000) {
+        long long temp = b;
+        b = a + b;
+        a = temp;
+        if(b <= 1000000) {
+            fib_set.insert(b);
+        }
+    }
+    
+    // Find which extracted numbers are Fibonacci
+    vector<int> fibonacci_found;
+    for(int num : extracted) {
+        if(fib_set.count(num)) {
+            fibonacci_found.push_back(num);
+        }
+    }
+    
+    // Output count
+    int count = fibonacci_found.size();
+    cout << count << "\n";
+    
+    // Output identified Fibonacci numbers
+    for(int i = 0; i < fibonacci_found.size(); i++) {
+        if(i > 0) cout << " ";
+        cout << fibonacci_found[i];
+    }
+    cout << "\n";
+    
+    // Generate and output first K Fibonacci numbers
+    vector<long long> first_k;
+    a = 0; b = 1;
+    first_k.push_back(0);
+    
+    while(first_k.size() < count) {
+        first_k.push_back(b);
+        long long temp = b;
+        b = a + b;
+        a = temp;
+    }
+    
+    for(int i = 0; i < first_k.size(); i++) {
+        if(i > 0) cout << " ";
+        cout << first_k[i];
+    }
+    cout << "\n";
+    
+    return 0;
+}
