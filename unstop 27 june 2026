@@ -1,0 +1,84 @@
+#include<bits/stdc++.h>
+using namespace std;
+
+vector<int> adj[100005];
+vector<pair<int,int>> path_edges;
+
+// DFS se path find karo between two nodes
+bool dfs_path(int node, int target, int parent) {
+    if(node == target) {
+        return true;
+    }
+    
+    for(int neighbor : adj[node]) {
+        if(neighbor == parent) continue;
+        
+        if(dfs_path(neighbor, target, node)) {
+            // Edge ko store karo (normalized form: smaller node first)
+            path_edges.push_back({min(node, neighbor), max(node, neighbor)});
+            return true;
+        }
+    }
+    return false;
+}
+
+// Path find karna between u aur v
+vector<pair<int,int>> find_path(int u, int v) {
+    path_edges.clear();
+    dfs_path(u, v, -1);
+    return path_edges;
+}
+
+int main(){
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+    
+    int n;
+    cin >> n;
+    
+    // Tree ke edges read karo
+    for(int i = 0; i < n-1; i++) {
+        int a, b;
+        cin >> a >> b;
+        adj[a].push_back(b);
+        adj[b].push_back(a);
+    }
+    
+    // Active edges ko set mein track karo
+    set<pair<int,int>> active_edges;
+    
+    int q;
+    cin >> q;
+    
+    while(q--) {
+        int type, u, v;
+        cin >> type >> u >> v;
+        
+        // U aur V ke beech path find karo
+        vector<pair<int,int>> path = find_path(u, v);
+        
+        if(type == 1) {
+            // Toggle operation
+            for(auto edge : path) {
+                if(active_edges.count(edge)) {
+                    // Active ho to inactive karo
+                    active_edges.erase(edge);
+                } else {
+                    // Inactive ho to active karo
+                    active_edges.insert(edge);
+                }
+            }
+        } else {
+            // Query operation - count active edges
+            int count = 0;
+            for(auto edge : path) {
+                if(active_edges.count(edge)) {
+                    count++;
+                }
+            }
+            cout << count << "\n";
+        }
+    }
+    
+    return 0;
+}
