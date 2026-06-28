@@ -1,0 +1,131 @@
+#include <iostream>
+#include <vector>
+#include <unordered_map>
+#include <algorithm>
+
+using namespace std;
+
+class SegmentTree {
+private:
+    vector<unordered_map<int, int>> tree; // Store frequency map for each segment
+    vector<int> arr;
+    int n;
+    
+    void build(int node, int start, int end) {
+        if (start == end) {
+            tree[node][arr[start]]++;
+        } else {
+            int mid = (start + end) / 2;
+            build(2 * node, start, mid);
+            build(2 * node + 1, mid + 1, end);
+            
+            // Merge child frequency maps
+            for (auto& p : tree[2 * node]) {
+                tree[node][p.first] += p.second;
+            }
+            for (auto& p : tree[2 * node + 1]) {
+                tree[node][p.first] += p.second;
+            }
+        }
+    }
+    
+    void updateRange(int node, int start, int end, int l, int r, int mask) {
+        if (start > r || end < l) return;
+        
+        if (start == end) {
+            // Leaf node - update single element
+            int old_val = arr[start];
+            tree[node][old_val]--;
+            if (tree[node][old_val] == 0) {
+                tree[node].erase(old_val);
+            }
+            
+            arr[start] ^= mask;
+            int new_val = arr[start];
+            tree[node][new_val]++;
+        } else {
+            int mid = (start + end) / 2;
+            updateRange(2 * node, start, mid, l, r, mask);
+            updateRange(2 * node + 1, mid + 1, end, l, r, mask);
+            
+            // Rebuild current node's frequency map
+            tree[node].clear();
+            for (auto& p : tree[2 * node]) {
+                tree[node][p.first] += p.second;
+            }
+            for (auto& p : tree[2 * node + 1]) {
+                tree[node][p.first] += p.second;
+            }
+        }
+    }
+    
+    void queryRange(int node, int start, int end, int l, int r, unordered_map<int, int>& result) {
+        if (start > r || end < l) return;
+        
+        if (l <= start && end <= r) {
+            // This segment is completely within query range
+            for (auto& p : tree[node]) {
+                result[p.first] += p.second;
+            }
+        } else {
+            int mid = (start + end) / 2;
+            queryRange(2 * node, start, mid, l, r, result);
+            queryRange(2 * node + 1, mid + 1, end, l, r, result);
+        }
+    }
+    
+public:
+    SegmentTree(vector<int>& input) {
+        arr = input;
+        n = input.size() - 1; // 1-indexed
+        tree.resize(4 * n);
+        build(1, 1, n);
+    }
+    
+    void update(int l, int r, int mask) {
+        updateRange(1, 1, n, l, r, mask);
+    }
+    
+    int query(int l, int r) {
+        unordered_map<int, int> freq;
+        queryRange(1, 1, n, l, r, freq);
+        
+        int maxCount = 0;
+        for (auto& p : freq) {
+            maxCount = max(maxCount, p.second);
+        }
+        return maxCount;
+    }
+};
+
+int main() {
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+    
+    int n, q;
+    cin >> n >> q;
+    
+    vector<int> receptors(n + 1);
+    for (int i = 1; i <= n; i++) {
+        cin >> receptors[i];
+    }
+    
+    SegmentTree st(receptors);
+    
+    for (int event = 0; event < q; event++) {
+        int type;
+        cin >> type;
+        
+        if (type == 1) {
+            int l, r, m;
+            cin >> l >> r >> m;
+            st.update(l, r, m);
+        } else {
+            int l, r;
+            cin >> l >> r;
+            cout << st.query(l, r) << "\n";
+        }
+    }
+    
+    return 0;
+}
