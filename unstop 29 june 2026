@@ -1,0 +1,94 @@
+#include <iostream>
+#include <vector>
+#include <bits/stdc++.h>
+using namespace std;
+
+int getNegativeNumberWaves(vector<int>&diff,int& idx)
+{
+    int curWaves = 0;
+    while(diff[idx] < 0)
+    {
+        int requiredWaves = diff[idx];
+        int d = abs(curWaves-requiredWaves);
+        if(curWaves < abs(requiredWaves))
+            curWaves += d;
+        idx++;
+    }
+    return curWaves;
+}
+
+int getPositiveNumberWaves(vector<int>&diff,int& idx)
+{
+    int curWaves = 0;
+    while(diff[idx] > 0)
+    {
+        int requiredWaves = diff[idx];
+        int d = abs(curWaves-requiredWaves);
+        if(curWaves < requiredWaves)
+            curWaves += d;
+        idx++;
+    }
+    return curWaves;
+}
+
+// Placeholder function for user logic
+int min_operations(int n, const vector<int>& E, const vector<int>& T) {
+    vector<int>diff(n);
+    for(int i =0;i<n;i++)
+    {
+        diff[i] = T[i] - E[i];
+    }
+    int idx = 0;
+    while(diff[idx] == 0)
+    {
+        idx++;
+    }
+    int res = 0;
+    for(;idx < n;)
+    {
+        if(diff[idx] > 0)//positive number
+        {
+            res += getPositiveNumberWaves(diff,idx);
+        }
+        else if (diff[idx] < 0)//negative number
+        {
+            res += getNegativeNumberWaves(diff,idx);
+        }
+        else
+            idx++;
+    }
+
+    return res;
+    // User logic to be implemented here
+    // Parameters:
+    //  - n: Number of sectors
+    //  - E: Vector of initial energy levels
+    //  - T: Vector of required energy thresholds
+    // Return:
+    //  - An integer representing the minimum number of wave operations needed
+    // return 0; // Placeholder return statement
+}
+
+int main() {
+    int n;
+    cin >> n; // Read the number of sectors
+
+    vector<int> E(n); // Vector to store initial energy levels
+    vector<int> T(n); // Vector to store required energy thresholds
+
+    for (int i = 0; i < n; ++i) {
+        cin >> E[i]; // Read initial energy levels
+    }
+
+    for (int i = 0; i < n; ++i) {
+        cin >> T[i]; // Read required energy thresholds
+    }
+
+    // Call the user logic function
+    int result = min_operations(n, E, T);
+
+    // Print the result
+    cout << result << endl;
+
+    return 0;
+}
