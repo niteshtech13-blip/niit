@@ -1,0 +1,49 @@
+#include <iostream>
+#include <vector>
+#include <unordered_map>
+using namespace std;
+
+// Function where the user will implement their logic
+int minUnassignedShifts(int n, int m, const vector<int>& doctorSpecs, const vector<int>& shiftReqs) {
+    // Count how many doctors are available for each specialization
+    unordered_map<int, int> specCount;
+    for (int i = 0; i < n; i++) {
+        specCount[doctorSpecs[i]]++;
+    }
+
+    int unassigned = 0;
+
+    // For each shift, check if a doctor with matching specialization is available
+    for (int i = 0; i < m; i++) {
+        int req = shiftReqs[i];
+        if (specCount[req] > 0) {
+            specCount[req]--;   // doctor assigned, use one up
+        } else {
+            unassigned++;       // no doctor available for this shift
+        }
+    }
+
+    return unassigned;
+}
+
+int main() {
+    int n, m;
+    cin >> n >> m; // Read number of doctors and shifts
+
+    vector<int> doctorSpecs(n);
+    vector<int> shiftReqs(m);
+
+    for (int i = 0; i < n; ++i) {
+        cin >> doctorSpecs[i]; // Read doctor's specializations
+    }
+
+    for (int i = 0; i < m; ++i) {
+        cin >> shiftReqs[i]; // Read required specializations for shifts
+    }
+
+    // Call the user logic function and print the result
+    int result = minUnassignedShifts(n, m, doctorSpecs, shiftReqs);
+    cout << result << endl;
+
+    return 0;
+}
