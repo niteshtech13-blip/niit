@@ -1,0 +1,44 @@
+#include <iostream>
+#include <vector>
+#include <deque>
+#include <climits>
+
+int smallest_max_difference(const std::vector<int>& arr, int k) {
+    int n = arr.size();
+    std::deque<int> maxDq, minDq; // store indices
+    int ans = INT_MAX;
+
+    for (int i = 0; i < n; ++i) {
+        while (!maxDq.empty() && arr[maxDq.back()] <= arr[i]) maxDq.pop_back();
+        maxDq.push_back(i);
+
+        while (!minDq.empty() && arr[minDq.back()] >= arr[i]) minDq.pop_back();
+        minDq.push_back(i);
+
+        // remove elements out of window
+        while (maxDq.front() <= i - k) maxDq.pop_front();
+        while (minDq.front() <= i - k) minDq.pop_front();
+
+        if (i >= k - 1) {
+            int diff = arr[maxDq.front()] - arr[minDq.front()];
+            ans = std::min(ans, diff);
+        }
+    }
+
+    return ans;
+}
+
+int main() {
+    int n, k;
+    std::cin >> n;
+    std::vector<int> arr(n);
+    for (int i = 0; i < n; ++i) {
+        std::cin >> arr[i];
+    }
+    std::cin >> k;
+
+    int result = smallest_max_difference(arr, k);
+    std::cout << result << std::endl;
+
+    return 0;
+}
