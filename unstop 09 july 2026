@@ -1,0 +1,39 @@
+#include <bits/stdc++.h>
+using namespace std;
+
+int main() {
+    int n;
+    scanf("%d", &n);
+    
+    vector<vector<int>> adj(n + 1);
+    for (int i = 0; i < n - 1; i++) {
+        int u, v;
+        scanf("%d %d", &u, &v);
+        adj[u].push_back(v);
+        adj[v].push_back(u);
+    }
+    
+    vector<int> dist(n + 1, -1);
+    queue<int> q;
+    dist[1] = 0;
+    q.push(1);
+    
+    int maxDist = 0;
+    
+    while (!q.empty()) {
+        int u = q.front();
+        q.pop();
+        
+        for (int v : adj[u]) {
+            if (dist[v] == -1) {
+                dist[v] = dist[u] + 1;
+                maxDist = max(maxDist, dist[v]);
+                q.push(v);
+            }
+        }
+    }
+    
+    printf("%d\n", maxDist);
+    
+    return 0;
+}
