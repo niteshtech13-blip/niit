@@ -1,0 +1,25 @@
+#include <cmath>
+#include <cstdio>
+#include <vector>
+#include <iostream>
+#include <algorithm>
+#include <queue>
+using namespace std;
+
+int main() {
+    int n, k;
+    cin >> n >> k;
+    vector<int> a(n);
+    for (int i = 0; i < n; i++) cin >> a[i];
+    
+    priority_queue<int> pq(a.begin(), a.end());
+    
+    for (int i = 0; i < k; i++) {
+        cout << pq.top();
+        pq.pop();
+        if (i != k - 1) cout << " ";
+    }
+    cout << endl;
+    
+    return 0;
+}
