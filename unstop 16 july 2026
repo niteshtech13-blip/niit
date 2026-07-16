@@ -1,0 +1,26 @@
+#include <cmath>
+#include <cstdio>
+#include <vector>
+#include <iostream>
+#include <algorithm>
+using namespace std;
+
+int main() {
+    int R, C;
+    cin >> R >> C;
+    
+    vector<vector<int>> grid(R, vector<int>(C));
+    for (int i = 0; i < R; i++)
+        for (int j = 0; j < C; j++)
+            cin >> grid[i][j];
+    
+    for (int i = 0; i < R; i++) {
+        for (int j = C - 1; j >= 0; j--) {
+            cout << grid[i][j];
+            if (j != 0) cout << " ";
+        }
+        cout << "\n";
+    }
+    
+    return 0;
+}
