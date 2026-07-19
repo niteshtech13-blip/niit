@@ -1,0 +1,88 @@
+#include <cmath>
+#include <cstdio>
+#include <vector>
+#include <iostream>
+#include <algorithm>
+using namespace std;
+
+int main() {
+    int N, M;
+    scanf("%d %d", &N, &M);
+
+    vector<vector<int>> adj(N + 1), radj(N + 1);
+    vector<int> eu(M), ev(M);
+
+    for (int i = 0; i < M; i++) {
+        int u, v;
+        scanf("%d %d", &u, &v);
+        eu[i] = u; ev[i] = v;
+        adj[u].push_back(v);
+        radj[v].push_back(u);
+    }
+
+    // Pass 1: iterative DFS on original graph -> finish order
+    vector<int> order;
+    order.reserve(N);
+    vector<char> visited(N + 1, 0);
+    vector<int> iterIdx(N + 1, 0);
+    vector<int> stackNodes;
+    stackNodes.reserve(N);
+
+    for (int s = 1; s <= N; s++) {
+        if (visited[s]) continue;
+        stackNodes.push_back(s);
+        visited[s] = 1;
+        while (!stackNodes.empty()) {
+            int u = stackNodes.back();
+            if (iterIdx[u] < (int)adj[u].size()) {
+                int v = adj[u][iterIdx[u]++];
+                if (!visited[v]) {
+                    visited[v] = 1;
+                    stackNodes.push_back(v);
+                }
+            } else {
+                order.push_back(u);
+                stackNodes.pop_back();
+            }
+        }
+    }
+
+    // Pass 2: iterative DFS on reverse graph in decreasing finish order
+    vector<int> comp(N + 1, -1);
+    int numComp = 0;
+    vector<int> stack2;
+    stack2.reserve(N);
+
+    for (int i = N - 1; i >= 0; i--) {
+        int s = order[i];
+        if (comp[s] != -1) continue;
+        comp[s] = numComp;
+        stack2.push_back(s);
+        while (!stack2.empty()) {
+            int u = stack2.back();
+            stack2.pop_back();
+            for (int v : radj[u]) {
+                if (comp[v] == -1) {
+                    comp[v] = numComp;
+                    stack2.push_back(v);
+                }
+            }
+        }
+        numComp++;
+    }
+
+    // Which components have incoming edges from a DIFFERENT component?
+    vector<char> hasIncoming(numComp, 0);
+    for (int i = 0; i < M; i++) {
+        int cu = comp[eu[i]], cv = comp[ev[i]];
+        if (cu != cv) hasIncoming[cv] = 1;
+    }
+
+    int answer = 0;
+    for (int c = 0; c < numComp; c++) {
+        if (!hasIncoming[c]) answer++;
+    }
+
+    printf("%d\n", answer);
+    return 0;
+}
