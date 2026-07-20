@@ -1,0 +1,15 @@
+#include <cmath>
+#include <cstdio>
+#include <vector>
+#include <iostream>
+#include <algorithm>
+using namespace std;
+
+int main() {
+    long long a, b;
+    cin >> a >> b;
+    long long g = __gcd(a, b);
+    long long lcm = (a / g) * b;
+    cout << lcm << endl;
+    return 0;
+}
