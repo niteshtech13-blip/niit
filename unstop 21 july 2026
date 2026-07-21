@@ -1,0 +1,46 @@
+#include <cmath>
+#include <cstdio>
+#include <vector>
+#include <iostream>
+#include <algorithm>
+using namespace std;
+
+struct Node {
+    int val;
+    Node* left;
+    Node* right;
+    Node(int v) : val(v), left(nullptr), right(nullptr) {}
+};
+
+Node* insert(Node* root, int val) {
+    if (!root) return new Node(val);
+    if (val < root->val) root->left = insert(root->left, val);
+    else root->right = insert(root->right, val);
+    return root;
+}
+
+void postorder(Node* root, vector<int>& res) {
+    if (!root) return;
+    postorder(root->left, res);
+    postorder(root->right, res);
+    res.push_back(root->val);
+}
+
+int main() {
+    int n;
+    cin >> n;
+    Node* root = nullptr;
+    for (int i = 0; i < n; i++) {
+        int x;
+        cin >> x;
+        root = insert(root, x);
+    }
+    vector<int> res;
+    postorder(root, res);
+    for (int i = 0; i < (int)res.size(); i++) {
+        cout << res[i];
+        if (i + 1 < (int)res.size()) cout << " ";
+    }
+    cout << endl;
+    return 0;
+}
