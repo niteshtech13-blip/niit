@@ -1,0 +1,60 @@
+#include <bits/stdc++.h>
+using namespace std;
+
+int freq[1000001];
+long long curSum = 0;
+int arr[200005];
+int blockSize;
+
+struct Query {
+    int l, r, idx;
+};
+
+bool cmp(const Query &a, const Query &b) {
+    int ablock = a.l / blockSize;
+    int bblock = b.l / blockSize;
+    if (ablock != bblock) return ablock < bblock;
+    if (ablock & 1) return a.r > b.r;
+    return a.r < b.r;
+}
+
+inline void add(int val) {
+    curSum -= (long long)freq[val]*freq[val];
+    freq[val]++;
+    curSum += (long long)freq[val]*freq[val];
+}
+
+inline void remove_(int val) {
+    curSum -= (long long)freq[val]*freq[val];
+    freq[val]--;
+    curSum += (long long)freq[val]*freq[val];
+}
+
+int main(){
+    int n, q;
+    scanf("%d %d", &n, &q);
+    for (int i=1;i<=n;i++) scanf("%d", &arr[i]);
+
+    vector<Query> queries(q);
+    for (int i=0;i<q;i++){
+        scanf("%d %d", &queries[i].l, &queries[i].r);
+        queries[i].idx = i;
+    }
+
+    blockSize = max(1, (int)sqrt(n));
+    sort(queries.begin(), queries.end(), cmp);
+
+    vector<long long> ans(q);
+    int curL = 1, curR = 0;
+
+    for (auto &qr : queries){
+        while (curR < qr.r) add(arr[++curR]);
+        while (curL > qr.l) add(arr[--curL]);
+        while (curR > qr.r) remove_(arr[curR--]);
+        while (curL < qr.l) remove_(arr[curL++]);
+        ans[qr.idx] = curSum;
+    }
+
+    for (int i=0;i<q;i++) printf("%lld\n", ans[i]);
+    return 0;
+}
