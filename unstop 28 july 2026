@@ -1,0 +1,51 @@
+#include <cmath>
+#include <cstdio>
+#include <vector>
+#include <iostream>
+#include <algorithm>
+using namespace std;
+
+const long long INF = 1e18;
+
+int main() {
+    int N, M, Q;
+    scanf("%d %d %d", &N, &M, &Q);
+
+    vector<vector<long long>> dist(N + 1, vector<long long>(N + 1, INF));
+    for (int i = 1; i <= N; i++) dist[i][i] = 0;
+
+    for (int i = 0; i < M; i++) {
+        int u, v; long long w;
+        scanf("%d %d %lld", &u, &v, &w);
+        if (w < dist[u][v]) {
+            dist[u][v] = w;
+            dist[v][u] = w;
+        }
+    }
+
+    // Floyd-Warshall, N <= 400 -> N^3 = 6.4e7, fine
+    for (int k = 1; k <= N; k++) {
+        for (int i = 1; i <= N; i++) {
+            if (dist[i][k] == INF) continue;
+            for (int j = 1; j <= N; j++) {
+                if (dist[k][j] == INF) continue;
+                long long via = dist[i][k] + dist[k][j];
+                if (via < dist[i][j]) dist[i][j] = via;
+            }
+        }
+    }
+
+    // Fast output
+    string out;
+    out.reserve(Q * 8);
+    for (int i = 0; i < Q; i++) {
+        int a, b;
+        scanf("%d %d", &a, &b);
+        long long ans = dist[a][b];
+        out += (ans == INF ? "-1" : to_string(ans));
+        out += "\n";
+    }
+    printf("%s", out.c_str());
+
+    return 0;
+}
