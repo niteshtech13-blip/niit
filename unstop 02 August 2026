@@ -1,0 +1,41 @@
+#include <bits/stdc++.h>
+using namespace std;
+
+int main() {
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+
+    int M;
+    cin >> M;
+
+    vector<int> mask(M);
+    for (int i = 0; i < M; i++) cin >> mask[i];
+
+    int S, T;
+    cin >> S >> T;
+
+    int target = S ^ T;
+
+    int total = 1 << M;
+    vector<int> xorVal(total, 0);
+
+    int best = INT_MAX;
+
+    if (target == 0) best = 0; // empty subset works
+
+    for (int subset = 1; subset < total; subset++) {
+        int lb = subset & (-subset);
+        int idx = __builtin_ctz(lb);
+        xorVal[subset] = xorVal[subset ^ lb] ^ mask[idx];
+
+        if (xorVal[subset] == target) {
+            int cnt = __builtin_popcount(subset);
+            if (cnt < best) best = cnt;
+        }
+    }
+
+    if (best == INT_MAX) cout << -1 << endl;
+    else cout << best << endl;
+
+    return 0;
+}
