@@ -1,0 +1,116 @@
+#include <bits/stdc++.h>
+using namespace std;
+
+int N, M, Q, K;
+vector<int> parent_, sz_;
+vector<array<int,3>> hist_; // ry, rx, oldSzRx
+
+int find(int x){
+    while(parent_[x]!=x) x = parent_[x];
+    return x;
+}
+
+bool unite(int x,int y){
+    int rx=find(x), ry=find(y);
+    if(rx==ry) return false;
+    if(sz_[rx]<sz_[ry]) swap(rx,ry);
+    hist_.push_back({ry, rx, sz_[rx]});
+    parent_[ry]=rx;
+    sz_[rx]+=sz_[ry];
+    return true;
+}
+
+void rollback(int checkpoint){
+    while((int)hist_.size()>checkpoint){
+        auto &h = hist_.back();
+        int ry=h[0], rx=h[1], oldSzRx=h[2];
+        parent_[ry]=ry;
+        sz_[rx]=oldSzRx;
+        hist_.pop_back();
+    }
+}
+
+vector<vector<pair<int,int>>> segTree;
+
+void addEdge(int node,int nl,int nr,int l,int r,int a,int b){
+    if(r<nl||nr<l) return;
+    if(l<=nl && nr<=r){ segTree[node].push_back({a,b}); return; }
+    int mid=(nl+nr)/2;
+    addEdge(2*node,nl,mid,l,r,a,b);
+    addEdge(2*node+1,mid+1,nr,l,r,a,b);
+}
+
+vector<int> ans;
+vector<int> qX, qY;
+vector<vector<int>> leafQueries;
+
+void dfs(int node,int nl,int nr){
+    int checkpoint = hist_.size();
+    for(auto &e: segTree[node]) unite(e.first, e.second);
+    if(nl==nr){
+        for(int qi: leafQueries[nl]){
+            ans[qi] = (find(qX[qi])==find(qY[qi])) ? 1 : 0;
+        }
+    } else {
+        int mid=(nl+nr)/2;
+        dfs(2*node,nl,mid);
+        dfs(2*node+1,mid+1,nr);
+    }
+    rollback(checkpoint);
+}
+
+int main(){
+    ios_base::sync_with_stdio(false);
+    cin.tie(nullptr);
+
+    cin >> N >> M;
+    vector<array<int,4>> treaties(M);
+    for(auto &t: treaties){
+        cin >> t[0] >> t[1] >> t[2] >> t[3]; // A B L R
+    }
+
+    cin >> Q;
+    qX.resize(Q); qY.resize(Q);
+    vector<int> qT(Q);
+    for(int i=0;i<Q;i++){
+        cin >> qX[i] >> qY[i] >> qT[i];
+    }
+
+    vector<int> times = qT;
+    sort(times.begin(), times.end());
+    times.erase(unique(times.begin(), times.end()), times.end());
+    K = times.size();
+
+    leafQueries.assign(K, {});
+    for(int i=0;i<Q;i++){
+        int idx = lower_bound(times.begin(), times.end(), qT[i]) - times.begin();
+        leafQueries[idx].push_back(i);
+    }
+
+    segTree.assign(4*max(K,1)+4, {});
+
+    for(auto &t: treaties){
+        int a=t[0], b=t[1], l=t[2], r=t[3];
+        int lo = lower_bound(times.begin(), times.end(), l) - times.begin();
+        int hi = (int)(upper_bound(times.begin(), times.end(), r) - times.begin()) - 1;
+        if(lo<=hi && K>0){
+            addEdge(1,0,K-1,lo,hi,a,b);
+        }
+    }
+
+    parent_.resize(N+1);
+    sz_.assign(N+1,1);
+    for(int i=0;i<=N;i++) parent_[i]=i;
+
+    ans.assign(Q,0);
+    if(K>0) dfs(1,0,K-1);
+
+    string out;
+    out.reserve(Q*4);
+    for(int i=0;i<Q;i++){
+        out += (ans[i] ? "YES" : "NO");
+        out += '\n';
+    }
+    cout << out;
+    return 0;
+}
