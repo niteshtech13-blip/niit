@@ -1,0 +1,68 @@
+#include <iostream>
+#include <vector>
+#include <string>
+using namespace std;
+
+struct Node {
+    int next[26];
+    long long cnt;
+    Node() {
+        for (int i = 0; i < 26; i++) next[i] = -1;
+        cnt = 0;
+    }
+};
+
+int main() {
+    ios::sync_with_stdio(false);
+    cin.tie(nullptr);
+
+    int N;
+    cin >> N;
+
+    vector<Node> trie(1); 
+
+    for (int i = 0; i < N; i++) {
+        string s;
+        cin >> s;
+        int cur = 0;
+        for (char c : s) {
+            int id = c - 'a';
+            if (trie[cur].next[id] == -1) {
+                trie[cur].next[id] = trie.size();
+                trie.emplace_back();
+            }
+            cur = trie[cur].next[id];
+            trie[cur].cnt++;
+        }
+    }
+
+    int Q;
+    cin >> Q;
+
+    while (Q--) {
+        string p;
+        cin >> p;
+
+        int cur = 0;
+        bool ok = true;
+
+        for (char c : p) {
+            int id = c - 'a';
+            if (trie[cur].next[id] == -1) {
+                ok = false;
+                break;
+            }
+            cur = trie[cur].next[id];
+        }
+
+        if (!ok) {
+            cout << 0 << "\n";
+        } else {
+            long long k = trie[cur].cnt;
+            cout << k * (k - 1) / 2 << "\n";
+        }
+    }
+
+    return 0;
+}
+              
