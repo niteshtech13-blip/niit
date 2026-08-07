@@ -1,0 +1,22 @@
+import heapq
+
+n = int(input())
+
+jobs = []
+for _ in range(n):
+    t, d = map(int, input().split())
+    jobs.append((d, t))
+
+jobs.sort()
+
+heap = []
+total = 0
+
+for d, t in jobs:
+    heapq.heappush(heap, -t)
+    total += t
+
+    if total > d:
+        total += heapq.heappop(heap)
+
+print(len(heap))
