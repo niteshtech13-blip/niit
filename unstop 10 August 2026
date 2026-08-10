@@ -1,0 +1,78 @@
+#include <bits/stdc++.h>
+using namespace std;
+
+int main() {
+    ios::sync_with_stdio(false);
+    cin.tie(nullptr);
+
+    int Q;
+    cin >> Q;
+
+    multiset<long long> left, right;
+
+    auto balance = [&]() {
+        while (left.size() > right.size() + 1) {
+            auto it = prev(left.end());
+            right.insert(*it);
+            left.erase(it);
+        }
+
+        while (right.size() > left.size()) {
+            auto it = right.begin();
+            left.insert(*it);
+            right.erase(it);
+        }
+    };
+
+    while (Q--) {
+        int type;
+        cin >> type;
+
+        if (type == 1) {
+            long long x;
+            cin >> x;
+
+            if (left.empty() || x <= *prev(left.end()))
+                left.insert(x);
+            else
+                right.insert(x);
+
+            balance();
+        }
+
+        else if (type == 2) {
+            long long x;
+            cin >> x;
+
+            auto it = left.find(x);
+
+            if (it != left.end())
+                left.erase(it);
+            else {
+                it = right.find(x);
+                if (it != right.end())
+                    right.erase(it);
+            }
+
+            balance();
+        }
+
+        else {
+            if (left.empty() && right.empty()) {
+                cout << -1 << '\n';
+            }
+            else if (left.size() > right.size()) {
+                cout << *prev(left.end()) << '\n';
+            }
+            else {
+                long long a = *prev(left.end());
+                long long b = *right.begin();
+
+                cout << (a + b) / 2 << '\n';
+            }
+        }
+    }
+
+    return 0;
+}
+                
