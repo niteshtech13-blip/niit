@@ -1,0 +1,43 @@
+#include <cmath>
+#include <cstdio>
+#include <vector>
+#include <iostream>
+#include <algorithm>
+using namespace std;
+
+int main() {
+    int n;
+    long long k;
+    cin >> n >> k;
+
+    const int MAXV = 200005;
+    vector<bool> present(MAXV, false);
+
+    for (int i = 0; i < n; i++) {
+        long long val;
+        cin >> val;
+        if (val != -1 && val >= 0 && val < MAXV) {
+            present[val] = true;
+        }
+    }
+
+    long long ans_x = -1, ans_y = -1;
+
+    for (long long d = 1; k - d >= 0 && k + d < MAXV; d++) {
+        long long x = k - d;
+        long long y = k + d;
+        if (present[x] && present[y]) {
+            ans_x = x;
+            ans_y = y;
+            break;
+        }
+    }
+
+    if (ans_x == -1) {
+        cout << -1 << endl;
+    } else {
+        cout << ans_x << " " << ans_y << endl;
+    }
+
+    return 0;
+}
