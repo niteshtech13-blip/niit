@@ -1,0 +1,101 @@
+#include <bits/stdc++.h>
+using namespace std;
+
+int main() {
+    ios::sync_with_stdio(false);
+    cin.tie(nullptr);
+
+    int n;
+    cin >> n;
+
+    vector<vector<int>> adj(n + 1);
+
+    for (int i = 0; i < n - 1; i++) {
+        int u, v;
+        cin >> u >> v;
+
+        adj[u].push_back(v);
+        adj[v].push_back(u);
+    }
+
+    vector<long long> a(n + 1);
+
+    for (int i = 1; i <= n; i++) {
+        cin >> a[i];
+    }
+
+    vector<int> ans(n + 1, -1);
+
+    // Monotonic stack
+    vector<int> st;
+
+    struct State {
+        int v;
+        int parent;
+        int type;
+        vector<int> removed;
+    };
+
+    vector<State> dfs;
+
+    dfs.push_back({1, 0, 0, {}});
+
+    while (!dfs.empty()) {
+
+        State cur = move(dfs.back());
+        dfs.pop_back();
+
+        int v = cur.v;
+        int parent = cur.parent;
+
+        // ENTER node
+        if (cur.type == 0) {
+
+            vector<int> removed;
+
+            // Remove ancestors which are <= a[v]
+            while (!st.empty() && a[st.back()] <= a[v]) {
+                removed.push_back(st.back());
+                st.pop_back();
+            }
+
+            // Top is now the closest greater ancestor
+            if (!st.empty()) {
+                ans[v] = st.back();
+            }
+
+            // Put current node into stack
+            st.push_back(v);
+
+            // EXIT state
+            dfs.push_back({v, parent, 1, move(removed)});
+
+            // Process children
+            for (int i = (int)adj[v].size() - 1; i >= 0; i--) {
+                int u = adj[v][i];
+
+                if (u != parent) {
+                    dfs.push_back({u, v, 0, {}});
+                }
+            }
+        }
+
+        // EXIT node
+        else {
+
+            // Remove current node
+            st.pop_back();
+
+            // Restore ancestors removed while entering this node
+            for (int i = (int)cur.removed.size() - 1; i >= 0; i--) {
+                st.push_back(cur.removed[i]);
+            }
+        }
+    }
+
+    for (int i = 1; i <= n; i++) {
+        cout << ans[i] << (i == n ? '\n' : ' ');
+    }
+
+    return 0;
+}
