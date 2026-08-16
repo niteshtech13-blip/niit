@@ -1,0 +1,43 @@
+#include <cmath>
+#include <cstdio>
+#include <vector>
+#include <iostream>
+#include <algorithm>
+using namespace std;
+
+int main() {
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+
+    int n;
+    cin >> n;
+
+    vector<long long> prefix(n + 1, 0);
+    for (int i = 1; i <= n; i++) {
+        long long x;
+        cin >> x;
+        prefix[i] = prefix[i - 1] + x;
+    }
+
+    int q;
+    cin >> q;
+
+    string result;
+    result.reserve(q * 15);
+
+    while (q--) {
+        int l, r;
+        cin >> l >> r;
+        long long sum = prefix[r] - prefix[l - 1];
+
+        result += to_string(sum);
+        result += ' ';
+        if (sum > 0) result += "SURPLUS";
+        else if (sum < 0) result += "DEFICIT";
+        else result += "BALANCED";
+        result += '\n';
+    }
+
+    cout << result;
+    return 0;
+}
