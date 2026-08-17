@@ -1,0 +1,80 @@
+#include <iostream>
+#include <vector>
+#include <algorithm>
+#include <climits>
+
+using namespace std;
+
+struct Point {
+    long long x, y;
+};
+
+bool compareX(const Point& a, const Point& b) {
+    return a.x < b.x;
+}
+
+bool compareY(const Point& a, const Point& b) {
+    return a.y < b.y;
+}
+
+long long distSq(const Point& a, const Point& b) {
+    return (a.x - b.x) * (a.x - b.x) + (a.y - b.y) * (a.y - b.y);
+}
+
+long long bruteForce(vector<Point>& p, int left, int right) {
+    long long min_d = LLONG_MAX;
+    for (int i = left; i <= right; ++i) {
+        for (int j = i + 1; j <= right; ++j) {
+            min_d = min(min_d, distSq(p[i], p[j]));
+        }
+    }
+    return min_d;
+}
+
+long long closestPairUtil(vector<Point>& p, int left, int right) {
+    if (right - left <= 3) {
+        return bruteForce(p, left, right);
+    }
+
+    int mid = left + (right - left) / 2;
+    Point midPoint = p[mid];
+
+    long long dl = closestPairUtil(p, left, mid);
+    long long dr = closestPairUtil(p, mid + 1, right);
+    long long d = min(dl, dr);
+
+    vector<Point> strip;
+    for (int i = left; i <= right; i++) {
+        long long dx = p[i].x - midPoint.x;
+        if (dx * dx < d) {
+            strip.push_back(p[i]);
+        }
+    }
+
+    sort(strip.begin(), strip.end(), compareY);
+
+    for (size_t i = 0; i < strip.size(); ++i) {
+        for (size_t j = i + 1; j < strip.size(); ++j) {
+            long long dy = strip[j].y - strip[i].y;
+            if (dy * dy >= d) break;
+            d = min(d, distSq(strip[i], strip[j]));
+        }
+    }
+
+    return d;
+}
+
+int main() {
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+    int n;
+    if (cin >> n) {
+        vector<Point> p(n);
+        for (int i = 0; i < n; ++i) {
+            cin >> p[i].x >> p[i].y;
+        }
+        sort(p.begin(), p.end(), compareX);
+        cout << closestPairUtil(p, 0, n - 1) << "\n";
+    }
+    return 0;
+}
