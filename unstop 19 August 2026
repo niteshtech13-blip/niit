@@ -1,0 +1,30 @@
+#include <bits/stdc++.h>
+using namespace std;
+
+int main(){
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+    
+    int n;
+    cin >> n;
+    
+    vector<long long> st;
+    st.reserve(n);
+    
+    for(int i = 0; i < n; i++){
+        long long w;
+        cin >> w;
+        st.push_back(w);
+        while(st.size() >= 2 && st[st.size()-1] == st[st.size()-2]){
+            long long a = st.back(); st.pop_back();
+            long long b = st.back(); st.pop_back();
+            st.push_back(a + b);
+        }
+    }
+    
+    cout << st.size() << "\n";
+    for(size_t i = 0; i < st.size(); i++){
+        cout << st[i] << " \n"[i+1==st.size()];
+    }
+    return 0;
+}
