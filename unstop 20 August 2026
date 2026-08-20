@@ -1,0 +1,111 @@
+#include <iostream>
+#include <vector>
+#include <algorithm>
+
+using namespace std;
+
+const long long INF_VAL = 2e18;
+int N, Q;
+vector<long long> a;
+vector<long long> tree;
+vector<long long> lazy;
+
+void build(int node, int start, int end) {
+    if (start == end) {
+        tree[node] = a[start];
+        return;
+    }
+    int mid = (start + end) / 2;
+    build(2 * node, start, mid);
+    build(2 * node + 1, mid + 1, end);
+    tree[node] = max(tree[2 * node], tree[2 * node + 1]);
+}
+
+void push(int node) {
+    if (lazy[node] != 0) {
+        lazy[2 * node] += lazy[node];
+        tree[2 * node] += lazy[node];
+        lazy[2 * node + 1] += lazy[node];
+        tree[2 * node + 1] += lazy[node];
+        lazy[node] = 0;
+    }
+}
+
+void update(int node, int start, int end, int l, int r, long long val) {
+    if (r < start || end < l) return;
+    if (l <= start && end <= r) {
+        tree[node] += val;
+        lazy[node] += val;
+        return;
+    }
+    push(node);
+    int mid = (start + end) / 2;
+    update(2 * node, start, mid, l, r, val);
+    update(2 * node + 1, mid + 1, end, l, r, val);
+    tree[node] = max(tree[2 * node], tree[2 * node + 1]);
+}
+
+long long query_max(int node, int start, int end, int l, int r) {
+    if (r < start || end < l) return -INF_VAL;
+    if (l <= start && end <= r) return tree[node];
+    push(node);
+    int mid = (start + end) / 2;
+    return max(query_max(2 * node, start, mid, l, r),
+               query_max(2 * node + 1, mid + 1, end, l, r));
+}
+
+int query_first(int node, int start, int end, int l, int r, long long x) {
+    if (r < start || end < l || tree[node] <= x) return -1;
+    if (start == end) return start;
+    push(node);
+    int mid = (start + end) / 2;
+    int res = query_first(2 * node, start, mid, l, r, x);
+    if (res != -1) return res;
+    return query_first(2 * node + 1, mid + 1, end, l, r, x);
+}
+
+int main() {
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+
+    if (!(cin >> N)) return 0;
+    a.resize(N + 1);
+    for (int i = 1; i <= N; i++) cin >> a[i];
+
+    tree.resize(4 * N + 1, 0);
+    lazy.resize(4 * N + 1, 0);
+    build(1, 1, N);
+
+    cin >> Q;
+    while (Q--) {
+        int type;
+        cin >> type;
+        if (type == 1) {
+            int l, r;
+            long long v;
+            cin >> l >> r >> v;
+            update(1, 1, N, l, r, v);
+        } else if (type == 2) {
+            int l, r;
+            cin >> l >> r;
+            cout << query_max(1, 1, N, l, r) << "\n";
+        } else if (type == 3) {
+            int l, r;
+            long long x;
+            cin >> l >> r >> x;
+            // To ensure we only look within [l, r], we can temporarily filter out of bounds or write a slightly bounded query
+            // Here is a clean bounded version:
+            auto query_bounded = [&](auto& self, int node, int start, int end, int ql, int qr, long long limit) -> int {
+                if (qr < start || end < ql || tree[node] <= limit) return -1;
+                if (start == end) return (start >= ql && start <= qr) ? start : -1;
+                push(node);
+                int mid = (start + end) / 2;
+                int res = self(self, 2 * node, start, mid, ql, qr, limit);
+                if (res != -1) return res;
+                return self(self, 2 * node + 1, mid + 1, end, ql, qr, limit);
+            };
+            cout << query_bounded(query_bounded, 1, 1, N, l, r, x) << "\n";
+        }
+    }
+    return 0;
+}
