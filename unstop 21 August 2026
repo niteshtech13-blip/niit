@@ -1,0 +1,72 @@
+#include <iostream>
+#include <vector>
+#include <algorithm>
+
+using namespace std;
+
+// Lot ki details store karne ke liye structure
+struct Lot {
+    int start;
+    int end;
+    long long profit; // Profit bada ho sakta hai, isliye long long use kiya hai
+};
+
+// Lots ko unke end time ke basis par sort karne ke liye comparator function
+bool compareLots(const Lot& a, const Lot& b) {
+    return a.end < b.end;
+}
+
+int main() {
+    // Fast I/O for competitive programming
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+
+    int n;
+    if (!(cin >> n)) return 0;
+
+    vector<Lot> lots(n);
+    for (int i = 0; i < n; ++i) {
+        cin >> lots[i].start >> lots[i].end >> lots[i].profit;
+    }
+
+    // 1. End time ke according lots ko sort karein
+    sort(lots.begin(), lots.end(), compareLots);
+
+    // 2. DP table aur End Times ko track karne ke liye vectors
+    // dp[i] store karega maximum profit jo pehle i lots tak achieve kiya ja sakta hai
+    vector<long long> dp(n + 1, 0);
+    vector<int> end_times(n);
+    
+    for (int i = 0; i < n; ++i) {
+        end_times[i] = lots[i].end;
+    }
+
+    // 3. DP transitions calculate karein
+    for (int i = 1; i <= n; ++i) {
+        // Option 1: Current lot ko skip karna
+        long long profit_excluding = dp[i - 1];
+
+        // Option 2: Current lot ko include karna
+        long long profit_including = lots[i - 1].profit;
+
+        // Binary search ka use karke wo last lot dhoondhein jo current lot ke start time se pehle ya tabhi khatam ho raha ho
+        // upper_bound hume wo pehla element dega jo lots[i-1].start se bada (> ) ho
+        auto it = upper_bound(end_times.begin(), end_times.end(), lots[i - 1].start);
+        
+        int idx = distance(end_times.begin(), it);
+        
+        // Agar koi non-overlapping lot milta hai, toh uska profit add karein
+        if (idx > 0) {
+            profit_including += dp[idx];
+        }
+
+        // Dono options me se maximum profit choose karein
+        dp[i] = max(profit_excluding, profit_including);
+    }
+
+    // Final answer print karein
+    cout << dp[n] << "\n";
+
+    return 0;
+}
+                
