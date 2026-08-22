@@ -1,0 +1,66 @@
+#include <iostream>
+#include <vector>
+#include <deque>
+#include <algorithm>
+
+using namespace std;
+
+int main() {
+    // Fast I/O
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+
+    int n, m;
+    if (!(cin >> n >> m)) return 0;
+
+    vector<long long> weights(n);
+    for (int i = 0; i < n; ++i) {
+        cin >> weights[i];
+    }
+
+    deque<int> max_dq; // Store indices for max elements
+    deque<int> min_dq; // Store indices for min elements
+
+    long long min_imbalance = -1;
+    int best_start_pos = -1;
+
+    for (int i = 0; i < n; ++i) {
+        // Maintain max_dq in decreasing order of values
+        while (!max_dq.empty() && weights[max_dq.back()] <= weights[i]) {
+            max_dq.pop_back();
+        }
+        max_dq.push_back(i);
+
+        // Maintain min_dq in increasing order of values
+        while (!min_dq.empty() && weights[min_dq.back()] >= weights[i]) {
+            min_dq.pop_back();
+        }
+        min_dq.push_back(i);
+
+        // Remove elements outside the current window [i - m + 1, i]
+        if (max_dq.front() <= i - m) {
+            max_dq.pop_front();
+        }
+        if (min_dq.front() <= i - m) {
+            min_dq.pop_front();
+        }
+
+        // Process completed window of size m
+        if (i >= m - 1) {
+            long long current_max = weights[max_dq.front()];
+            long long current_min = weights[min_dq.front()];
+            long long current_imbalance = current_max - current_min;
+
+            int start_pos = (i - m + 1) + 1; // 1-indexed position
+
+            if (min_imbalance == -1 || current_imbalance < min_imbalance) {
+                min_imbalance = current_imbalance;
+                best_start_pos = start_pos;
+            }
+        }
+    }
+
+    cout << min_imbalance << " " << best_start_pos << "\n";
+
+    return 0;
+}
