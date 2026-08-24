@@ -1,0 +1,164 @@
+#include <cmath>
+#include <cstdio>
+#include <vector>
+#include <iostream>
+#include <algorithm>
+using namespace std;
+
+const int BITS = 30;
+
+struct Node {
+    int left;
+    int right;
+    int cnt;
+
+    Node() {
+        left = 0;
+        right = 0;
+        cnt = 0;
+    }
+};
+
+vector<Node> trie;
+vector<int> root;
+
+int insertValue(int oldRoot, int value) {
+    int newRoot = trie.size();
+
+    trie.push_back(trie[oldRoot]);
+    trie[newRoot].cnt++;
+
+    int old = oldRoot;
+    int cur = newRoot;
+
+    for (int bit = BITS - 1; bit >= 0; bit--) {
+
+        int b = (value >> bit) & 1;
+
+        if (b == 0) {
+            int oldChild = trie[old].left;
+
+            int newChild = trie.size();
+            trie.push_back(trie[oldChild]);
+            trie[newChild].cnt++;
+
+            trie[cur].left = newChild;
+
+            old = oldChild;
+            cur = newChild;
+        }
+        else {
+            int oldChild = trie[old].right;
+
+            int newChild = trie.size();
+            trie.push_back(trie[oldChild]);
+            trie[newChild].cnt++;
+
+            trie[cur].right = newChild;
+
+            old = oldChild;
+            cur = newChild;
+        }
+    }
+
+    return newRoot;
+}
+
+int maxXor(int leftRoot, int rightRoot, int x) {
+
+    int u = leftRoot;
+    int v = rightRoot;
+
+    int answer = 0;
+
+    for (int bit = BITS - 1; bit >= 0; bit--) {
+
+        int xb = (x >> bit) & 1;
+
+        if (xb == 0) {
+
+            // We want bit 1 to maximize XOR.
+            int uNext = trie[u].right;
+            int vNext = trie[v].right;
+
+            if (trie[vNext].cnt - trie[uNext].cnt > 0) {
+                answer |= (1 << bit);
+                u = uNext;
+                v = vNext;
+            }
+            else {
+                u = trie[u].left;
+                v = trie[v].left;
+            }
+        }
+        else {
+
+            // We want bit 0 to maximize XOR.
+            int uNext = trie[u].left;
+            int vNext = trie[v].left;
+
+            if (trie[vNext].cnt - trie[uNext].cnt > 0) {
+                answer |= (1 << bit);
+                u = uNext;
+                v = vNext;
+            }
+            else {
+                u = trie[u].right;
+                v = trie[v].right;
+            }
+        }
+    }
+
+    return answer;
+}
+
+int main() {
+
+    ios::sync_with_stdio(false);
+    cin.tie(nullptr);
+
+    int N;
+    cin >> N;
+
+    vector<int> A(N + 1);
+
+    for (int i = 1; i <= N; i++) {
+        cin >> A[i];
+    }
+
+    /*
+     * Each value creates at most 31 nodes:
+     * one root + 30 bits.
+     */
+    trie.reserve((size_t)N * 31 + 1);
+
+    // Node 0 is the empty/null node.
+    trie.push_back(Node());
+
+    root.resize(N + 1, 0);
+
+    // Build persistent trie versions.
+    for (int i = 1; i <= N; i++) {
+        root[i] = insertValue(root[i - 1], A[i]);
+    }
+
+    int Q;
+    cin >> Q;
+
+    while (Q--) {
+
+        int l, r, x;
+        cin >> l >> r >> x;
+
+        /*
+         * root[r] contains values A[1..r]
+         * root[l-1] contains values A[1..l-1]
+         *
+         * Their count difference represents exactly A[l..r].
+         */
+        cout << maxXor(root[l - 1], root[r], x) << '\n';
+    }
+
+    return 0;
+}
+         
