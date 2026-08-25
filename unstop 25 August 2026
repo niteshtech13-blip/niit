@@ -1,0 +1,58 @@
+#include <bits/stdc++.h>
+using namespace std;
+
+int main() {
+    ios::sync_with_stdio(false);
+    cin.tie(nullptr);
+
+    int N;
+    long long D;
+    cin >> N >> D;
+
+    vector<long long> price(N);
+    for (int i = 0; i < N; i++) {
+        cin >> price[i];
+    }
+
+    deque<int> maxDeque; // stores indices, prices in decreasing order
+    deque<int> minDeque; // stores indices, prices in increasing order
+
+    int left = 0;
+    int answer = 0;
+
+    for (int right = 0; right < N; right++) {
+        // Maintain decreasing deque for maximum
+        while (!maxDeque.empty() && price[maxDeque.back()] < price[right]) {
+            maxDeque.pop_back();
+        }
+        maxDeque.push_back(right);
+
+        // Maintain increasing deque for minimum
+        while (!minDeque.empty() && price[minDeque.back()] > price[right]) {
+            minDeque.pop_back();
+        }
+        minDeque.push_back(right);
+
+        // Shrink window until it becomes valid
+        while (!maxDeque.empty() && !minDeque.empty() &&
+               price[maxDeque.front()] - price[minDeque.front()] > D) {
+            
+            if (maxDeque.front() == left) {
+                maxDeque.pop_front();
+            }
+
+            if (minDeque.front() == left) {
+                minDeque.pop_front();
+            }
+
+            left++;
+        }
+
+        answer = max(answer, right - left + 1);
+    }
+
+    cout << answer << '\n';
+
+    return 0;
+}
+                
