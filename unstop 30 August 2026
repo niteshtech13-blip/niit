@@ -1,0 +1,73 @@
+#include <cmath>
+#include <cstdio>
+#include <vector>
+#include <iostream>
+#include <algorithm>
+#include<bits/stdc++.h>
+using namespace std;
+
+
+int main() {
+    int n,m,s,d;
+    cin >> n >> m >> s >> d;
+    vector<vector<pair<int,pair<long long,pair<long long,long long>>>>> mp(n+1);
+
+    for(int i=0;i<m;i++) {
+        int u,v;
+        cin >> u >> v;
+        long long first,freq,dur;
+        cin >> first >> freq >> dur;
+
+        mp[u].push_back({v,{first,{freq,dur}}});
+    }
+
+        vector<long long> dist(n+1,LLONG_MAX);
+        priority_queue<pair<long long, int>,vector<pair<long long, int>>, greater<pair<long long,int>>> pq;
+        dist[s] = 0;
+        pq.push({0,s});
+
+        long long ans = -1;
+
+        while(!pq.empty()) {
+            long long t = pq.top().first;
+            int u = pq.top().second;
+            pq.pop();
+
+            if(t != dist[u]) continue;
+
+            if(u == d) {
+                ans = t;
+                break;
+            }
+
+            for(auto it: mp[u]) {
+                int v = it.first;
+                long long first = it.second.first;
+                long long freq = it.second.second.first;
+                long long dur = it.second.second.second;
+
+                long long res;
+
+                if(freq == 0) {
+                    if(first < t) continue;
+                    res = first;
+                } else {
+                    if(t <= first) {
+                        res = first;
+                    } else {
+                        long long possTime = (t-first-1+freq)/freq;
+                        res = first + (possTime*freq);
+                    }
+                }
+                long long reachTime = dur + res;
+                if(reachTime < dist[v]) {
+                    dist[v] = reachTime;
+                    pq.push({reachTime,v});
+                }
+            }
+
+        }
+        cout << ans << endl;
+    return 0;
+}
+                
