@@ -1,0 +1,55 @@
+#include <iostream>
+#include <vector>
+#include <deque>
+using namespace std;
+
+int longestStableWindow(const vector<int>& arr, int n, long long limit) {
+    deque<int> mn, mx;
+    int left = 0;
+    int ans = 0;
+
+    for (int right = 0; right < n; ++right) {
+
+        // Maintain increasing deque for minimum
+        while (!mn.empty() && arr[mn.back()] >= arr[right])
+            mn.pop_back();
+        mn.push_back(right);
+
+        // Maintain decreasing deque for maximum
+        while (!mx.empty() && arr[mx.back()] <= arr[right])
+            mx.pop_back();
+        mx.push_back(right);
+
+        // Shrink window if max - min > limit
+        while ((long long)arr[mx.front()] - arr[mn.front()] > limit) {
+            if (mn.front() == left)
+                mn.pop_front();
+
+            if (mx.front() == left)
+                mx.pop_front();
+
+            left++;
+        }
+
+        ans = max(ans, right - left + 1);
+    }
+
+    return ans;
+}
+
+int main() {
+    int n;
+    long long limit;
+
+    cin >> n >> limit;
+
+    vector<int> arr(n);
+    for (int i = 0; i < n; ++i) {
+        cin >> arr[i];
+    }
+
+    cout << longestStableWindow(arr, n, limit) << endl;
+
+    return 0;
+}
+                
