@@ -1,0 +1,116 @@
+#include <iostream>
+#include <vector>
+#include <algorithm>
+
+using namespace std;
+
+// Maximum number of bits needed since codes are < 2^20
+const int MAX_BITS = 20;
+
+// Structure for a node in the Persistent Trie
+struct Node {
+    int count;       // Number of elements sharing this prefix
+    int left, right; // Indices of left (0) and right (1) child nodes
+};
+
+// Global pool of nodes to avoid slow dynamic memory allocations
+vector<Node> trie;
+vector<int> roots;
+
+// Function to insert a new number into the persistent trie
+int insert(int prev_root, int val) {
+    int new_root = trie.size();
+    trie.push_back(trie[prev_root]); // Copy the previous node's structure
+    int curr = new_root;
+
+    for (int i = MAX_BITS - 1; i >= 0; --i) {
+        int bit = (val >> i) & 1;
+        if (bit == 0) {
+            int prev_left = trie[curr].left;
+            trie[curr].left = trie.size();
+            trie.push_back(trie[prev_left]);
+            curr = trie[curr].left;
+        } else {
+            int prev_right = trie[curr].right;
+            trie[curr].right = trie.size();
+            trie.push_back(trie[prev_right]);
+            curr = trie[curr].right;
+        }
+        trie[curr].count++; // Increment count for the current version
+    }
+    return new_root;
+}
+
+// Function to query the maximum XOR in the range [l, r] with reference x
+int query(int root_l, int root_r, int x) {
+    int curr_l = root_l;
+    int curr_r = root_r;
+    int max_xor = 0;
+
+    for (int i = MAX_BITS - 1; i >= 0; --i) {
+        int bit = (x >> i) & 1;
+        // To maximize XOR, we want the opposite bit
+        int desired_bit = 1 - bit; 
+
+        // Check if the desired bit exists in the range [l, r]
+        int count_desired = 0;
+        if (desired_bit == 0) {
+            count_desired = trie[trie[curr_r].left].count - trie[trie[curr_l].left].count;
+        } else {
+            count_desired = trie[trie[curr_r].right].count - trie[trie[curr_l].right].count;
+        }
+
+        if (count_desired > 0) {
+            // Desired bit is available, take it
+            max_xor |= (1 << i);
+            if (desired_bit == 0) {
+                curr_l = trie[curr_l].left;
+                curr_r = trie[curr_r].left;
+            } else {
+                curr_l = trie[curr_l].right;
+                curr_r = trie[curr_r].right;
+            }
+        } else {
+            // Desired bit is not available, we must take the same bit
+            if (desired_bit == 0) {
+                curr_l = trie[curr_l].right;
+                curr_r = trie[curr_r].right;
+            } else {
+                curr_l = trie[curr_l].left;
+                curr_r = trie[curr_r].left;
+            }
+        }
+    }
+    return max_xor;
+}
+
+int main() {
+    // Optimize standard I/O operations for performance
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+
+    int n;
+    if (!(cin >> n)) return 0;
+
+    // Initialize the base/empty trie node
+    trie.push_back({0, 0, 0});
+    roots.push_back(0); // root for version 0 (empty trie)
+
+    for (int i = 0; i < n; ++i) {
+        int code;
+        cin >> code;
+        int next_root = insert(roots.back(), code);
+        roots.push_back(next_root);
+    }
+
+    int q;
+    cin >> q;
+    while (q--) {
+        int l, r, x;
+        cin >> l >> r >> x;
+        // Since l and r are 1-indexed, range [l, r] maps to roots[l-1] and roots[r]
+        cout << query(roots[l - 1], roots[r], x) << "\n";
+    }
+
+    return 0;
+}
