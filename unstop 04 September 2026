@@ -1,0 +1,67 @@
+import sys
+
+def solve():
+    # Read all inputs quickly from standard input
+    input_data = sys.stdin.read().split()
+    if not input_data:
+        return
+    
+    iterator = iter(input_data)
+    n = int(next(iterator))
+    
+    # Store artist IDs (1-indexed for alignment with Fenwick Tree)
+    arr = [0] * (n + 1)
+    for i in range(1, n + 1):
+        arr[i] = int(next(iterator))
+        
+    q = int(next(iterator))
+    
+    # Group queries by their right endpoint 'r'
+    # queries_by_r[r] stores tuples of (left_endpoint, query_index)
+    queries_by_r = [[] for _ in range(n + 1)]
+    for i in range(q):
+        l = int(next(iterator))
+        r = int(next(iterator))
+        queries_by_r[r].append((l, i))
+        
+    # Fenwick Tree / Binary Indexed Tree array
+    bit = [0] * (n + 1)
+    
+    def update(idx, val):
+        while idx <= n:
+            bit[idx] += val
+            idx += idx & (-idx)
+            
+    def query(idx):
+        s = 0
+        while idx > 0:
+            s += bit[idx]
+            idx -= idx & (-idx)
+        return s
+
+    # Map to track the last seen corridor position for each artist ID
+    last_seen = {}
+    ans = [0] * q
+    
+    # Process the paintings along the corridor sequentially
+    for r in range(1, n + 1):
+        artist = arr[r]
+        
+        # If the artist appeared before, nullify their previous index marker
+        if artist in last_seen:
+            update(last_seen[artist], -1)
+            
+        # Place a marker at the current active index position
+        update(r, 1)
+        last_seen[artist] = r
+        
+        # Answer all queries that terminate at this right endpoint
+        for l, q_idx in queries_by_r[r]:
+            ans[q_idx] = query(r) - query(l - 1)
+            
+    # Output results separated by newlines
+    sys.stdout.write('\n'.join(map(str, ans)) + '\n')
+
+if __name__ == '__main__':
+    solve()
+                
