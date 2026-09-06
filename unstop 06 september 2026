@@ -1,0 +1,100 @@
+#include <iostream>
+#include <vector>
+#include <cmath>
+
+using namespace std;
+
+const int LOG = 19; // 2^18 > 200,000
+
+struct Edge {
+    int to;
+    long long weight;
+};
+
+vector<vector<Edge>> adj;
+vector<vector<int>> up;
+vector<int> depth_level;
+vector<long long> dist;
+
+void dfs(int u, int p, int d, long long w) {
+    depth_level[u] = d;
+    dist[u] = w;
+    up[u][0] = p;
+
+    for (int i = 1; i < LOG; ++i) {
+        up[u][i] = up[up[u][i - 1]][i - 1];
+    }
+
+    for (const auto& edge : adj[u]) {
+        if (edge.to != p) {
+            dfs(edge.to, u, d + 1, w + edge.weight);
+        }
+    }
+}
+
+int get_lca(int u, int v) {
+    if (depth_level[u] < depth_level[v]) {
+        swap(u, v);
+    }
+
+    // Lift u to the same depth level as v
+    for (int i = LOG - 1; i >= 0; --i) {
+        if (depth_level[u] - (1 << i) >= depth_level[v]) {
+            u = up[u][i];
+        }
+    }
+
+    if (u == v) return u;
+
+    // Lift both nodes together until they meet right below LCA
+    for (int i = LOG - 1; i >= 0; --i) {
+        if (up[u][i] != up[v][i]) {
+            u = up[u][i];
+            v = up[v][i];
+        }
+    }
+
+    return up[u][0];
+}
+
+int main() {
+    // Fast I/O
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+
+    int n;
+    if (!(cin >> n)) return 0;
+
+    adj.resize(n + 1);
+    up.assign(n + 1, vector<int>(LOG, 1));
+    depth_level.resize(n + 1, 0);
+    dist.resize(n + 1, 0);
+
+    for (int i = 0; i < n - 1; ++i) {
+        int u, v;
+        long long w;
+        cin >> u >> v >> w;
+        adj[u].push_back({v, w});
+        adj[v].push_back({u, w});
+    }
+
+    // Preprocessing from root node 1
+    dfs(1, 1, 0, 0);
+
+    int q;
+    cin >> q;
+    while (q--) {
+        int x, y;
+        cin >> x >> y;
+
+        int lca = get_lca(x, y);
+
+        long long total_years = dist[x] + dist[y] - 2 * dist[lca];
+        int total_rulers = depth_level[x] + depth_level[y] - 2 * depth_level[lca] + 1;
+
+        cout << total_years << " " << total_rulers << "\n";
+    }
+
+    return 0;
+}
+           
