@@ -1,0 +1,72 @@
+#include <bits/stdc++.h>
+using namespace std;
+
+int main() {
+    ios::sync_with_stdio(false);
+    cin.tie(nullptr);
+
+    int n, m, k, src, dst;
+    cin >> n >> m >> k >> src >> dst;
+
+    vector<vector<pair<int, long long>>> adj(n + 1);
+
+    for (int i = 0; i < m; i++) {
+        int u, v;
+        long long w;
+        cin >> u >> v >> w;
+
+        adj[u].push_back({v, w});
+    }
+
+    const long long INF = LLONG_MAX / 4;
+
+    // dist[node][tokens_used]
+    vector<vector<long long>> dist(
+        n + 1, vector<long long>(k + 1, INF)
+    );
+
+    // {cost, node, tokens_used}
+    using State = tuple<long long, int, int>;
+
+    priority_queue<State, vector<State>, greater<State>> pq;
+
+    dist[src][0] = 0;
+    pq.push({0, src, 0});
+
+    while (!pq.empty()) {
+        auto [cost, u, used] = pq.top();
+        pq.pop();
+
+        if (cost != dist[u][used])
+            continue;
+
+        for (auto [v, w] : adj[u]) {
+
+            // 1. Travel normally
+            if (cost + w < dist[v][used]) {
+                dist[v][used] = cost + w;
+                pq.push({dist[v][used], v, used});
+            }
+
+            // 2. Use one free-pass token
+            if (used < k && cost < dist[v][used + 1]) {
+                dist[v][used + 1] = cost;
+                pq.push({cost, v, used + 1});
+            }
+        }
+    }
+
+    long long answer = INF;
+
+    // At most k tokens can be used
+    for (int used = 0; used <= k; used++) {
+        answer = min(answer, dist[dst][used]);
+    }
+
+    if (answer == INF)
+        cout << -1 << '\n';
+    else
+        cout << answer << '\n';
+
+    return 0;
+}
