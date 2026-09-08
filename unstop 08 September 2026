@@ -1,0 +1,114 @@
+#include <bits/stdc++.h>
+using namespace std;
+
+using ll = long long;
+
+const ll INF = (1LL << 62);
+
+struct Line {
+    ll m, b;
+
+    Line(ll m = 0, ll b = INF) : m(m), b(b) {}
+
+    ll value(ll x) const {
+        return m * x + b;
+    }
+};
+
+struct LiChaoTree {
+    int n;
+    vector<Line> tree;
+
+    LiChaoTree(int n) : n(n) {
+        tree.assign(4 * n + 5, Line());
+    }
+
+    void addLine(Line nw, int node, int l, int r) {
+        int mid = (l + r) / 2;
+
+        bool left = nw.value(l) < tree[node].value(l);
+        bool middle = nw.value(mid) < tree[node].value(mid);
+
+        if (middle)
+            swap(tree[node], nw);
+
+        if (l == r)
+            return;
+
+        if (left != middle)
+            addLine(nw, node * 2, l, mid);
+        else
+            addLine(nw, node * 2 + 1, mid + 1, r);
+    }
+
+    void addLine(Line nw) {
+        addLine(nw, 1, 1, n);
+    }
+
+    ll query(int x, int node, int l, int r) {
+        ll ans = tree[node].value(x);
+
+        if (l == r)
+            return ans;
+
+        int mid = (l + r) / 2;
+
+        if (x <= mid)
+            ans = min(ans, query(x, node * 2, l, mid));
+        else
+            ans = min(ans, query(x, node * 2 + 1, mid + 1, r));
+
+        return ans;
+    }
+
+    ll query(int x) {
+        return query(x, 1, 1, n);
+    }
+};
+
+int main() {
+    ios::sync_with_stdio(false);
+    cin.tie(nullptr);
+
+    int n;
+    ll w;
+
+    cin >> n >> w;
+
+    vector<ll> energy(n + 1);
+    for (int i = 1; i <= n; i++)
+        cin >> energy[i];
+
+    vector<ll> dp(n + 1, INF);
+
+    LiChaoTree lichao(n);
+
+    // Night 1 must be active.
+    dp[1] = energy[1];
+
+    // For j = 1:
+    // slope = -2*w*j
+    // intercept = dp[j] + w*j*j
+    lichao.addLine(Line(-2LL * w, dp[1] + w));
+
+    for (int i = 2; i <= n; i++) {
+
+        // dp[i] = energy[i] + w*i^2
+        //          + minimum line value at x=i
+        dp[i] = energy[i]
+              + w * 1LL * i * i
+              + lichao.query(i);
+
+        // Add the line corresponding to night i.
+        ll slope = -2LL * w * i;
+        ll intercept = dp[i] + w * 1LL * i * i;
+
+        lichao.addLine(Line(slope, intercept));
+    }
+
+    // Night n must be active, which dp[n] guarantees.
+    cout << dp[n] << '\n';
+
+    return 0;
+}
+              
