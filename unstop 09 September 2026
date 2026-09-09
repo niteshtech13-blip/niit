@@ -1,0 +1,70 @@
+#include <bits/stdc++.h>
+using namespace std;
+
+int main() {
+    ios::sync_with_stdio(false);
+    cin.tie(nullptr);
+
+    int N;
+    long long D;
+    cin >> N >> D;
+
+    vector<long long> a(N);
+    for (auto &x : a) cin >> x;
+
+    deque<int> maxDeque, minDeque;
+    unordered_map<long long, int> freq;
+
+    int left = 0;
+    int bestLen = 0;
+    int bestStart = 1;
+
+    for (int right = 0; right < N; right++) {
+        // Add current element to frequency map
+        freq[a[right]]++;
+
+        // Maintain decreasing deque for maximum
+        while (!maxDeque.empty() && a[maxDeque.back()] <= a[right])
+            maxDeque.pop_back();
+        maxDeque.push_back(right);
+
+        // Maintain increasing deque for minimum
+        while (!minDeque.empty() && a[minDeque.back()] >= a[right])
+            minDeque.pop_back();
+        minDeque.push_back(right);
+
+        // Shrink while either condition is violated
+        while (freq[a[right]] > 1 ||
+               a[maxDeque.front()] - a[minDeque.front()] > D) {
+
+            freq[a[left]]--;
+
+            if (freq[a[left]] == 0)
+                freq.erase(a[left]);
+
+            if (!maxDeque.empty() && maxDeque.front() == left)
+                maxDeque.pop_front();
+
+            if (!minDeque.empty() && minDeque.front() == left)
+                minDeque.pop_front();
+
+            left++;
+        }
+
+        // Current window [left ... right] is valid
+        int len = right - left + 1;
+        int start = left + 1; // convert to 1-indexed
+
+        // Update only if strictly longer.
+        // Since we scan from left to right, ties automatically
+        // keep the earliest starting position.
+        if (len > bestLen) {
+            bestLen = len;
+            bestStart = start;
+        }
+    }
+
+    cout << bestLen << ' ' << bestStart << '\n';
+
+    return 0;
+}
