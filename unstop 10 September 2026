@@ -1,0 +1,59 @@
+#include <iostream>
+#include <vector>
+#include <stack>
+#include <unordered_map>
+
+using namespace std;
+
+struct Wagon {
+    long long weight;
+    long long dest;
+};
+
+int main() {
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+
+    int N;
+    if (!(cin >> N)) return 0;
+
+    vector<Wagon> wagons(N);
+    for (int i = 0; i < N; ++i) {
+        cin >> wagons[i].weight >> wagons[i].dest;
+    }
+
+    vector<long long> wait_gaps(N, 0);
+    stack<int> st;
+
+    for (int i = N - 1; i >= 0; --i) {
+        while (!st.empty() && wagons[st.top()].weight <= wagons[i].weight) {
+            st.pop();
+        }
+
+        if (!st.empty()) {
+            wait_gaps[i] = st.top() - i;
+        } else {
+            wait_gaps[i] = 0;
+        }
+
+        st.push(i);
+    }
+
+    unordered_map<long long, long long> dest_totals;
+    vector<long long> dest_order;
+
+    for (int i = 0; i < N; ++i) {
+        long long d = wagons[i].dest;
+        if (dest_totals.find(d) == dest_totals.end()) {
+            dest_totals[d] = 0;
+            dest_order.push_back(d);
+        }
+        dest_totals[d] += wait_gaps[i];
+    }
+
+    for (long long d : dest_order) {
+        cout << d << " " << dest_totals[d] << "\n";
+    }
+
+    return 0;
+}
