@@ -1,0 +1,115 @@
+#include <bits/stdc++.h>
+using namespace std;
+
+struct TrieNode {
+    int child[2];
+    int cnt;
+
+    TrieNode() {
+        child[0] = child[1] = -1;
+        cnt = 0;
+    }
+};
+
+class BinaryTrie {
+private:
+    vector<TrieNode> trie;
+
+public:
+    BinaryTrie() {
+        trie.emplace_back(); // root
+    }
+
+    void insert(int x) {
+        int node = 0;
+        trie[node].cnt++;
+
+        for (int bit = 30; bit >= 0; --bit) {
+            int b = (x >> bit) & 1;
+
+            if (trie[node].child[b] == -1) {
+                trie[node].child[b] = trie.size();
+                trie.emplace_back();
+            }
+
+            node = trie[node].child[b];
+            trie[node].cnt++;
+        }
+    }
+
+    void erase(int x) {
+        int node = 0;
+        trie[node].cnt--;
+
+        for (int bit = 30; bit >= 0; --bit) {
+            int b = (x >> bit) & 1;
+            node = trie[node].child[b];
+            trie[node].cnt--;
+        }
+    }
+
+    int maxXor(int x) {
+        int node = 0;
+        int ans = 0;
+
+        for (int bit = 30; bit >= 0; --bit) {
+            int b = (x >> bit) & 1;
+            int opposite = b ^ 1;
+
+            if (trie[node].child[opposite] != -1 &&
+                trie[trie[node].child[opposite]].cnt > 0) {
+                
+                ans |= (1 << bit);
+                node = trie[node].child[opposite];
+            } else {
+                node = trie[node].child[b];
+            }
+        }
+
+        return ans;
+    }
+};
+
+int main() {
+    ios::sync_with_stdio(false);
+    cin.tie(nullptr);
+
+    int n, K;
+    cin >> n >> K;
+
+    vector<int> w(n + 1);
+    for (int i = 1; i <= n; ++i) {
+        cin >> w[i];
+    }
+
+    // Prefix XOR
+    vector<int> prefix(n + 1, 0);
+
+    for (int i = 1; i <= n; ++i) {
+        prefix[i] = prefix[i - 1] ^ w[i];
+    }
+
+    BinaryTrie trie;
+
+    int answer = 0;
+
+    // Process every ending position r
+    for (int r = 1; r <= n; ++r) {
+
+        // Add P[r-1]
+        trie.insert(prefix[r - 1]);
+
+        // Remove P[r-K-1] if it is outside the window
+        if (r - K - 1 >= 0) {
+            trie.erase(prefix[r - K - 1]);
+        }
+
+        // Find maximum P[r] XOR P[l]
+        answer = max(answer, trie.maxXor(prefix[r]));
+    }
+
+    cout << answer << '\n';
+
+    return 0;
+}
+       
