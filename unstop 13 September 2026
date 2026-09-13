@@ -1,0 +1,64 @@
+#include <bits/stdc++.h>
+using namespace std;
+
+struct Person {
+    long long id;
+    int count;
+    int first;
+};
+
+int main() {
+    ios::sync_with_stdio(false);
+    cin.tie(nullptr);
+
+    int N, K;
+    cin >> N >> K;
+
+    unordered_map<long long, int> count;
+    unordered_map<long long, int> first;
+
+    for (int i = 1; i <= N; i++) {
+        char op;
+        long long id;
+        cin >> op >> id;
+
+        if (op == '+') {
+            count[id]++;
+
+            // First + occurrence
+            if (first.find(id) == first.end()) {
+                first[id] = i;
+            }
+        } 
+        else {
+            count[id]--;
+        }
+    }
+
+    vector<Person> qualified;
+
+    for (auto &[id, cnt] : count) {
+        if (cnt > 0) {
+            qualified.push_back({id, cnt, first[id]});
+        }
+    }
+
+    sort(qualified.begin(), qualified.end(),
+        [](const Person &a, const Person &b) {
+            if (a.count != b.count)
+                return a.count > b.count;
+
+            return a.first < b.first;
+        }
+    );
+
+    int limit = min(K, (int)qualified.size());
+
+    for (int i = 0; i < limit; i++) {
+        cout << qualified[i].id << " "
+             << qualified[i].count << '\n';
+    }
+
+    return 0;
+}
+        
