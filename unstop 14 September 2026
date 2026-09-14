@@ -1,0 +1,243 @@
+#include <bits/stdc++.h>
+using namespace std;
+
+using ll = long long;
+
+struct Edge {
+    int to;
+    ll weight;
+};
+
+class CentroidDecomposition {
+private:
+    int n;
+    ll D;
+
+    vector<vector<Edge>> graph;
+    vector<int> subtreeSize;
+    vector<bool> removed;
+
+    ll answer = 0;
+
+    // ---------------------------------------------------------
+    // Calculate subtree sizes inside the current component
+    // ---------------------------------------------------------
+    int calculateSize(int node, int parent) {
+        subtreeSize[node] = 1;
+
+        for (const Edge &edge : graph[node]) {
+            int next = edge.to;
+
+            if (next == parent || removed[next]) {
+                continue;
+            }
+
+            subtreeSize[node] += calculateSize(next, node);
+        }
+
+        return subtreeSize[node];
+    }
+
+    // ---------------------------------------------------------
+    // Find centroid of the current component
+    // ---------------------------------------------------------
+    int findCentroid(int node, int parent, int totalSize) {
+        for (const Edge &edge : graph[node]) {
+            int next = edge.to;
+
+            if (next == parent || removed[next]) {
+                continue;
+            }
+
+            if (subtreeSize[next] > totalSize / 2) {
+                return findCentroid(next, node, totalSize);
+            }
+        }
+
+        return node;
+    }
+
+    // ---------------------------------------------------------
+    // Collect distances from centroid to nodes of one subtree
+    // ---------------------------------------------------------
+    void collectDistances(
+        int node,
+        int parent,
+        ll currentDistance,
+        vector<ll> &distances
+    ) {
+        // All edge weights are positive.
+        // If already > D, descendants will only be farther away.
+        if (currentDistance > D) {
+            return;
+        }
+
+        distances.push_back(currentDistance);
+
+        for (const Edge &edge : graph[node]) {
+            int next = edge.to;
+
+            if (next == parent || removed[next]) {
+                continue;
+            }
+
+            collectDistances(
+                next,
+                node,
+                currentDistance + edge.weight,
+                distances
+            );
+        }
+    }
+
+    // ---------------------------------------------------------
+    // Count pairs whose sum of distances <= D
+    // ---------------------------------------------------------
+    ll countPairs(vector<ll> &distances) {
+        sort(distances.begin(), distances.end());
+
+        int left = 0;
+        int right = (int)distances.size() - 1;
+
+        ll count = 0;
+
+        while (left < right) {
+            if (distances[left] + distances[right] <= D) {
+
+                /*
+                    distances[left] + distances[right] <= D
+
+                    Since array is sorted:
+
+                    distances[left] + distances[left + 1] <= D
+                    ...
+                    distances[left] + distances[right] <= D
+
+                    Therefore all (right - left) pairs with
+                    distances[left] are valid.
+                */
+
+                count += (right - left);
+                left++;
+            }
+            else {
+                right--;
+            }
+        }
+
+        return count;
+    }
+
+    // ---------------------------------------------------------
+    // Main centroid decomposition
+    // ---------------------------------------------------------
+    void decompose(int start) {
+        // Find size of current component
+        int totalSize = calculateSize(start, -1);
+
+        // Find centroid
+        int centroid = findCentroid(start, -1, totalSize);
+
+        /*
+            allDistances contains distances of all nodes
+            from this centroid.
+
+            Distance from centroid to itself = 0.
+        */
+        vector<ll> allDistances;
+        allDistances.push_back(0);
+
+        /*
+            Process every child subtree separately.
+
+            countPairs(allDistances)
+            would incorrectly include pairs belonging to
+            the same child subtree.
+
+            So subtract those first.
+        */
+        for (const Edge &edge : graph[centroid]) {
+            int next = edge.to;
+
+            if (removed[next]) {
+                continue;
+            }
+
+            vector<ll> childDistances;
+
+            collectDistances(
+                next,
+                centroid,
+                edge.weight,
+                childDistances
+            );
+
+            // Remove pairs whose two nodes belong
+            // to the same centroid subtree.
+            answer -= countPairs(childDistances);
+
+            // Add these distances to the global centroid list.
+            for (ll distance : childDistances) {
+                allDistances.push_back(distance);
+            }
+        }
+
+        // Count all pairs whose distance through centroid <= D.
+        answer += countPairs(allDistances);
+
+        // Remove centroid from future components.
+        removed[centroid] = true;
+
+        // Recursively solve each component formed after removal.
+        for (const Edge &edge : graph[centroid]) {
+            int next = edge.to;
+
+            if (!removed[next]) {
+                decompose(next);
+            }
+        }
+    }
+
+public:
+    CentroidDecomposition(int nodes, ll limit)
+        : n(nodes),
+          D(limit),
+          graph(nodes + 1),
+          subtreeSize(nodes + 1),
+          removed(nodes + 1, false) {}
+
+    void addEdge(int u, int v, ll weight) {
+        graph[u].push_back({v, weight});
+        graph[v].push_back({u, weight});
+    }
+
+    ll solve() {
+        decompose(1);
+        return answer;
+    }
+};
+
+int main() {
+    ios::sync_with_stdio(false);
+    cin.tie(nullptr);
+
+    int n;
+    long long D;
+
+    cin >> n >> D;
+
+    CentroidDecomposition solver(n, D);
+
+    for (int i = 0; i < n - 1; i++) {
+        int u, v;
+        long long w;
+
+        cin >> u >> v >> w;
+
+        solver.addEdge(u, v, w);
+    }
+
+    cout << solver.solve() << '\n';
+
+    return 0;
+}
