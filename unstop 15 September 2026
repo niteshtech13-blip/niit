@@ -1,0 +1,139 @@
+#include <iostream>
+#include <vector>
+
+using namespace std;
+
+// Global variables for tree structure and tree flattening
+vector<vector<int>> adj;
+vector<int> in_time, out_time;
+int timer = 0;
+
+// Binary lifting table for LCA
+vector<vector<int>> up;
+int LOGN;
+
+// Fenwick Tree (Binary Indexed Tree) for range updates and point queries
+struct FenwickTree {
+    int size;
+    vector<int> tree;
+    
+    FenwickTree(int n) {
+        size = n;
+        tree.assign(n + 2, 0);
+    }
+    
+    void update(int idx, int delta) {
+        for (; idx <= size; idx += idx & -idx)
+            tree[idx] += delta;
+    }
+    
+    int query(int idx) {
+        int sum = 0;
+        for (; idx > 0; idx -= idx & -idx)
+            sum += tree[idx];
+        return sum;
+    }
+};
+
+// DFS to compute entry/exit times and the binary lifting table
+void dfs(int u, int p) {
+    in_time[u] = ++timer;
+    up[u][0] = p;
+    
+    for (int i = 1; i <= LOGN; ++i) {
+        up[u][i] = up[up[u][i - 1]][i - 1];
+    }
+    
+    for (int v : adj[u]) {
+        if (v != p) {
+            dfs(v, u);
+        }
+    }
+    out_time[u] = timer;
+}
+
+// Check if u is an ancestor of v
+bool is_ancestor(int u, int v) {
+    return in_time[u] <= in_time[v] && out_time[u] >= out_time[v];
+}
+
+// Compute the Lowest Common Ancestor (LCA)
+int get_lca(int u, int v) {
+    if (is_ancestor(u, v)) return u;
+    if (is_ancestor(v, u)) return v;
+    
+    for (int i = LOGN; i >= 0; --i) {
+        if (!is_ancestor(up[u][i], v)) {
+            u = up[u][i];
+        }
+    }
+    return up[u][0];
+}
+
+int main() {
+    // Optimize standard I/O operations for performance
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+    
+    int n;
+    if (!(cin >> n)) return 0;
+    
+    adj.resize(n + 1);
+    in_time.resize(n + 1);
+    out_time.resize(n + 1);
+    
+    // Calculate maximum depth power for binary lifting
+    LOGN = 0;
+    while ((1 << LOGN) <= n) LOGN++;
+    up.assign(n + 1, vector<int>(LOGN + 1));
+    
+    for (int i = 0; i < n - 1; ++i) {
+        int u, v;
+        cin >> u >> v;
+        adj[u].push_back(v);
+        adj[v].push_back(u);
+    }
+    
+    // Flatten the tree starting from the root (depot = 1)
+    dfs(1, 1);
+    
+    FenwickTree bit(timer);
+    vector<int> edge_status(n + 1, 1); // 1 means electrified, 0 means shut off
+    edge_status[1] = 0; // Root has no parent track
+    
+    // Initially, all stretches are electrified
+    for (int i = 2; i <= n; ++i) {
+        bit.update(in_time[i], 1);
+        bit.update(out_time[i] + 1, -1);
+    }
+    
+    int q;
+    cin >> q;
+    while (q--) {
+        int type;
+        cin >> type;
+        if (type == 1) {
+            int v;
+            cin >> v;
+            if (v == 1) continue; // Depot has no incoming track
+            
+            // Toggle electrified state
+            int delta = (edge_status[v] == 1) ? -1 : 1;
+            edge_status[v] ^= 1;
+            
+            // Update the subtree range
+            bit.update(in_time[v], delta);
+            bit.update(out_time[v] + 1, -delta);
+        } else {
+            int u, v;
+            cin >> u >> v;
+            int lca = get_lca(u, v);
+            
+            // Stretches = dist(u) + dist(v) - 2 * dist(lca)
+            int ans = bit.query(in_time[u]) + bit.query(in_time[v]) - 2 * bit.query(in_time[lca]);
+            cout << ans << "\n";
+        }
+    }
+    
+    return 0;
+}
