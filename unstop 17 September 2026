@@ -1,0 +1,38 @@
+#include <cmath>
+#include <cstdio>
+#include <vector>
+#include <iostream>
+#include <algorithm>
+using namespace std;
+
+int main() {
+    int n;
+    long long B;
+    cin >> n >> B;
+
+    vector<long long> cost(n);
+    for (int i = 0; i < n; i++) {
+        cin >> cost[i];
+    }
+
+    long long sum = 0;
+    int left = 0;
+    int ans = 0;
+
+    for (int right = 0; right < n; right++) {
+        sum += cost[right];
+
+        while (sum > B) {
+            sum -= cost[left];
+            left++;
+        }
+
+        ans = max(ans, right - left + 1);
+    }
+
+    cout << ans << '\n';
+
+    return 0;
+}
+
+                
