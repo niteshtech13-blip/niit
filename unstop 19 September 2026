@@ -1,0 +1,75 @@
+#include <iostream>
+#include <vector>
+#include <climits>
+#include <string>
+using namespace std;
+
+int main() {
+    int n, m;
+    cin >> n >> m;
+
+    string s;
+    cin >> s;
+
+    vector<int> required(26, 0);
+
+    for (int i = 0; i < m; i++) {
+        char ch;
+        int count;
+
+        cin >> ch >> count;
+
+        required[ch - 'A'] = count;
+    }
+
+    vector<int> window(26, 0);
+
+    int left = 0;
+    int satisfied = 0;
+    int answer = INT_MAX;
+
+    for (int right = 0; right < n; right++) {
+
+        int index = s[right] - 'A';
+
+        window[index]++;
+
+        // Check if this required character
+        // has just reached its required count.
+        if (required[index] > 0 &&
+            window[index] == required[index]) {
+            satisfied++;
+        }
+
+        // If all required character types are satisfied,
+        // shrink the window from the left.
+        while (satisfied == m) {
+
+            int length = right - left + 1;
+
+            answer = min(answer, length);
+
+            int leftIndex = s[left] - 'A';
+
+            // If removing this character will break
+            // its requirement, decrease satisfied.
+            if (required[leftIndex] > 0 &&
+                window[leftIndex] == required[leftIndex]) {
+                satisfied--;
+            }
+
+            window[leftIndex]--;
+
+            left++;
+        }
+    }
+
+    if (answer == INT_MAX) {
+        cout << -1 << endl;
+    } else {
+        cout << answer << endl;
+    }
+
+    return 0;
+}
+      
