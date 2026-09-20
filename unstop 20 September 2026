@@ -1,0 +1,109 @@
+#include <bits/stdc++.h>
+using namespace std;
+
+class DSU {
+public:
+    vector<int> parent, sz;
+    vector<set<pair<int, int>>> relics;
+
+    DSU(int n, vector<int>& value) {
+        parent.resize(n + 1);
+        sz.assign(n + 1, 1);
+        relics.resize(n + 1);
+
+        for (int i = 1; i <= n; i++) {
+            parent[i] = i;
+
+            // 0 means chamber has no relic
+            if (value[i] > 0) {
+                // {-value, chamber}
+                // smallest pair => maximum value,
+                // and for tie, smallest chamber number
+                relics[i].insert({-value[i], i});
+            }
+        }
+    }
+
+    int find(int x) {
+        if (parent[x] == x)
+            return x;
+
+        return parent[x] = find(parent[x]);
+    }
+
+    void unite(int a, int b) {
+        a = find(a);
+        b = find(b);
+
+        if (a == b)
+            return;
+
+        // Small-to-large merging
+        if (relics[a].size() < relics[b].size())
+            swap(a, b);
+
+        parent[b] = a;
+        sz[a] += sz[b];
+
+        for (auto p : relics[b]) {
+            relics[a].insert(p);
+        }
+
+        relics[b].clear();
+    }
+
+    void claim(int x) {
+        int root = find(x);
+
+        if (relics[root].empty()) {
+            cout << "EMPTY\n";
+            return;
+        }
+
+        auto it = relics[root].begin();
+
+        int value = -it->first;
+        int chamber = it->second;
+
+        cout << chamber << " " << value << '\n';
+
+        // Relic is permanently removed
+        relics[root].erase(it);
+    }
+};
+
+int main() {
+    ios::sync_with_stdio(false);
+    cin.tie(nullptr);
+
+    int n, m;
+    cin >> n >> m;
+
+    vector<int> value(n + 1);
+
+    for (int i = 1; i <= n; i++) {
+        cin >> value[i];
+    }
+
+    DSU dsu(n, value);
+
+    for (int i = 0; i < m; i++) {
+        string op;
+        cin >> op;
+
+        if (op == "LINK") {
+            int u, v;
+            cin >> u >> v;
+
+            dsu.unite(u, v);
+        }
+        else if (op == "CLAIM") {
+            int x;
+            cin >> x;
+
+            dsu.claim(x);
+        }
+    }
+
+    return 0;
+}
