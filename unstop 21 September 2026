@@ -1,0 +1,80 @@
+#include <iostream>
+#include <vector>
+#include <deque>
+#include <unordered_map>
+
+using namespace std;
+
+int main() {
+
+    ios::sync_with_stdio(false);
+    cin.tie(nullptr);
+
+    int n, W;
+
+    cin >> n >> W;
+
+    vector<long long> readings(n);
+
+    for (int i = 0; i < n; i++) {
+        cin >> readings[i];
+    }
+
+    // Stores indices.
+    // Values corresponding to these indices
+    // are kept in decreasing order.
+    deque<int> dq;
+
+    // Frequency map for distinct count.
+    unordered_map<long long, int> freq;
+
+
+    for (int i = 0; i < n; i++) {
+
+        freq[readings[i]]++;
+
+        while (
+            !dq.empty() &&
+            readings[dq.back()] <= readings[i]
+        ) {
+            dq.pop_back();
+        }
+
+        dq.push_back(i);
+
+        if (i >= W) {
+
+            long long outgoing = readings[i - W];
+
+            freq[outgoing]--;
+
+            if (freq[outgoing] == 0) {
+                freq.erase(outgoing);
+            }
+        }
+
+        while (
+            !dq.empty() &&
+            dq.front() <= i - W
+        ) {
+            dq.pop_front();
+        }
+
+        if (i >= W - 1) {
+
+            long long maximum =
+                readings[dq.front()];
+
+            int distinct =
+                freq.size();
+
+            cout
+                << maximum
+                << " "
+                << distinct
+                << "\n";
+        }
+    }
+
+    return 0;
+}
