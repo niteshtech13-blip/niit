@@ -1,0 +1,139 @@
+#include <bits/stdc++.h>
+using namespace std;
+
+static const int MAX_BITS = 20;
+static const int MAX_CODE = 1 << MAX_BITS;
+static const int MAX_ID = 200000;
+
+struct TrieNode {
+    int child[2];
+    int cnt;
+
+    TrieNode() {
+        child[0] = child[1] = -1;
+        cnt = 0;
+    }
+};
+
+vector<TrieNode> trie;
+vector<priority_queue<int, vector<int>, greater<int>>> heaps(MAX_CODE);
+
+bool active[MAX_ID + 1];
+int currentCode[MAX_ID + 1];
+
+void insertCode(int code) {
+    int node = 0;
+    trie[node].cnt++;
+
+    for (int bit = MAX_BITS - 1; bit >= 0; --bit) {
+        int b = (code >> bit) & 1;
+
+        if (trie[node].child[b] == -1) {
+            trie[node].child[b] = (int)trie.size();
+            trie.emplace_back();
+        }
+
+        node = trie[node].child[b];
+        trie[node].cnt++;
+    }
+}
+
+void eraseCode(int code) {
+    int node = 0;
+    trie[node].cnt--;
+
+    for (int bit = MAX_BITS - 1; bit >= 0; --bit) {
+        int b = (code >> bit) & 1;
+        node = trie[node].child[b];
+        trie[node].cnt--;
+    }
+}
+
+int getBestCode(int query) {
+    int node = 0;
+    int bestCode = 0;
+
+    for (int bit = MAX_BITS - 1; bit >= 0; --bit) {
+        int qBit = (query >> bit) & 1;
+        int preferred = qBit ^ 1;
+        int other = qBit;
+
+        int next = trie[node].child[preferred];
+
+        if (next != -1 && trie[next].cnt > 0) {
+            bestCode |= (preferred << bit);
+            node = next;
+        } else {
+            node = trie[node].child[other];
+
+            if (other)
+                bestCode |= (1 << bit);
+        }
+    }
+
+    return bestCode;
+}
+
+void cleanHeap(int code) {
+    auto &pq = heaps[code];
+
+    while (!pq.empty()) {
+        int id = pq.top();
+
+        if (active[id] && currentCode[id] == code)
+            break;
+
+        pq.pop();
+    }
+}
+
+int main() {
+    ios::sync_with_stdio(false);
+    cin.tie(nullptr);
+
+    int M;
+    cin >> M;
+
+    trie.reserve(1 + M * MAX_BITS);
+    trie.emplace_back();
+
+    while (M--) {
+        string operation;
+        cin >> operation;
+
+        if (operation == "ON") {
+            int id, code;
+            cin >> id >> code;
+
+            active[id] = true;
+            currentCode[id] = code;
+
+            insertCode(code);
+            heaps[code].push(id);
+        }
+        else if (operation == "OFF") {
+            int id;
+            cin >> id;
+
+            int code = currentCode[id];
+
+            active[id] = false;
+            eraseCode(code);
+        }
+        else if (operation == "CHECK") {
+            int query;
+            cin >> query;
+
+            int bestCode = getBestCode(query);
+
+            cleanHeap(bestCode);
+
+            int answer = query ^ bestCode;
+            int witnessID = heaps[bestCode].top();
+
+            cout << answer << ' ' << witnessID << '\n';
+        }
+    }
+
+    return 0;
+}
