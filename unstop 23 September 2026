@@ -1,0 +1,116 @@
+#include <bits/stdc++.h>
+using namespace std;
+
+using ll = long long;
+
+struct Edge {
+    int to;
+    ll fuel;
+    int turb;
+};
+
+struct State {
+    ll fuel;
+    int node;
+    int turb;
+
+    bool operator>(const State& other) const {
+        return fuel > other.fuel;
+    }
+};
+
+int main() {
+    ios::sync_with_stdio(false);
+    cin.tie(nullptr);
+
+    int n, m, R;
+    cin >> n >> m >> R;
+
+    vector<vector<Edge>> graph(n + 1);
+
+    for (int i = 0; i < m; ++i) {
+        int u, v, turb;
+        ll fuel;
+
+        cin >> u >> v >> fuel >> turb;
+        graph[u].push_back({v, fuel, turb});
+    }
+
+    const ll INF = numeric_limits<ll>::max() / 4;
+
+    // dist[u][r] = minimum fuel needed to reach node u
+    // using exactly r turbulence.
+    vector<vector<ll>> dist(n + 1, vector<ll>(R + 1, INF));
+
+    priority_queue<State, vector<State>, greater<State>> pq;
+
+    dist[1][0] = 0;
+    pq.push({0, 1, 0});
+
+    // Dijkstra on expanded state graph:
+    // state = (node, accumulated turbulence)
+    while (!pq.empty()) {
+        State cur = pq.top();
+        pq.pop();
+
+        ll currentFuel = cur.fuel;
+        int u = cur.node;
+        int usedTurb = cur.turb;
+
+        if (currentFuel != dist[u][usedTurb])
+            continue;
+
+        for (const Edge& edge : graph[u]) {
+            int newTurb = usedTurb + edge.turb;
+
+            if (newTurb > R)
+                continue;
+
+            ll newFuel = currentFuel + edge.fuel;
+
+            if (newFuel < dist[edge.to][newTurb]) {
+                dist[edge.to][newTurb] = newFuel;
+                pq.push({
+                    newFuel,
+                    edge.to,
+                    newTurb
+                });
+            }
+        }
+    }
+
+    /*
+        Convert:
+
+            dist[u][r] = minimum fuel with EXACTLY r turbulence
+
+        into:
+
+            dist[u][r] = minimum fuel with AT MOST r turbulence
+
+        This lets every query be answered in O(1).
+    */
+    for (int u = 1; u <= n; ++u) {
+        for (int r = 1; r <= R; ++r) {
+            dist[u][r] = min(dist[u][r], dist[u][r - 1]);
+        }
+    }
+
+    int q;
+    cin >> q;
+
+    while (q--) {
+        int dest, tol;
+        cin >> dest >> tol;
+
+        ll answer = dist[dest][tol];
+
+        if (answer == INF)
+            cout << -1 << '\n';
+        else
+            cout << answer << '\n';
+    }
+
+    return 0;
+}
+   
