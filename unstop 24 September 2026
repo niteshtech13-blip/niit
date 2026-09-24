@@ -1,0 +1,105 @@
+#include <bits/stdc++.h>
+using namespace std;
+
+using ll = long long;
+
+struct Node {
+    int child[26];
+
+    Node() {
+        memset(child, -1, sizeof(child));
+    }
+};
+
+struct Key {
+    int node;
+    ll era;
+
+    bool operator==(const Key& other) const {
+        return node == other.node && era == other.era;
+    }
+};
+
+struct Hash {
+    size_t operator()(const Key& k) const {
+        size_t h1 = hash<int>()(k.node);
+        size_t h2 = hash<ll>()(k.era);
+
+        return h1 ^ (h2 + 0x9e3779b97f4a7c15ULL +
+                     (h1 << 6) + (h1 >> 2));
+    }
+};
+
+int main() {
+    ios::sync_with_stdio(false);
+    cin.tie(nullptr);
+
+    int Q;
+    cin >> Q;
+
+    vector<Node> trie;
+    trie.reserve(200005);
+    trie.emplace_back();   // root = 0
+
+    unordered_map<Key, int, Hash> cnt;
+    cnt.reserve(500000);
+    cnt.max_load_factor(0.7);
+
+    while (Q--) {
+        string type;
+        string s;
+        ll era;
+
+        cin >> type >> s >> era;
+
+        int node = 0;
+
+        if (type == "ADD") {
+
+            for (char c : s) {
+                int x = c - 'a';
+
+                if (trie[node].child[x] == -1) {
+                    trie[node].child[x] = trie.size();
+                    trie.emplace_back();
+                }
+
+                node = trie[node].child[x];
+
+                Key key{node, era};
+                cnt[key]++;
+            }
+
+        } else if (type == "QUERY") {
+
+            bool possible = true;
+
+            for (char c : s) {
+                int x = c - 'a';
+
+                if (trie[node].child[x] == -1) {
+                    possible = false;
+                    break;
+                }
+
+                node = trie[node].child[x];
+            }
+
+            if (!possible) {
+                cout << 0 << '\n';
+            } else {
+                Key key{node, era};
+
+                auto it = cnt.find(key);
+
+                if (it == cnt.end())
+                    cout << 0 << '\n';
+                else
+                    cout << it->second << '\n';
+            }
+        }
+    }
+
+    return 0;
+}
+                
