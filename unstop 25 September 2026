@@ -1,0 +1,131 @@
+#include <bits/stdc++.h>
+using namespace std;
+
+using ll = long long;
+
+const ll MOD = 1000000007LL;
+
+struct SegTree {
+    int n;
+    vector<ll> sum, lazy;
+
+    SegTree(int n) : n(n) {
+        sum.assign(4 * n + 5, 0);
+        lazy.assign(4 * n + 5, -1);
+    }
+
+    void apply(int p, int l, int r, ll x) {
+        sum[p] = x % MOD * (r - l + 1LL) % MOD;
+        lazy[p] = x;
+    }
+
+    void push(int p, int l, int r) {
+        if (lazy[p] == -1 || l == r)
+            return;
+
+        int m = (l + r) / 2;
+
+        apply(p * 2, l, m, lazy[p]);
+        apply(p * 2 + 1, m + 1, r, lazy[p]);
+
+        lazy[p] = -1;
+    }
+
+    void update(int p, int l, int r, int ql, int qr, ll x) {
+        if (qr < l || r < ql)
+            return;
+
+        if (ql <= l && r <= qr) {
+            apply(p, l, r, x);
+            return;
+        }
+
+        push(p, l, r);
+
+        int m = (l + r) / 2;
+
+        update(p * 2, l, m, ql, qr, x);
+        update(p * 2 + 1, m + 1, r, ql, qr, x);
+
+        sum[p] = (sum[p * 2] + sum[p * 2 + 1]) % MOD;
+    }
+
+    void update(int l, int r, ll x) {
+        if (l <= r)
+            update(1, 1, n, l, r, x);
+    }
+
+    ll query(int p, int l, int r, int ql, int qr) {
+        if (qr < l || r < ql)
+            return 0;
+
+        if (ql <= l && r <= qr)
+            return sum[p];
+
+        push(p, l, r);
+
+        int m = (l + r) / 2;
+
+        return (
+            query(p * 2, l, m, ql, qr) +
+            query(p * 2 + 1, m + 1, r, ql, qr)
+        ) % MOD;
+    }
+
+    ll query(int l, int r) {
+        return query(1, 1, n, l, r);
+    }
+};
+
+int main() {
+    ios::sync_with_stdio(false);
+    cin.tie(nullptr);
+
+    int n;
+    cin >> n;
+
+    vector<ll> a(n + 1);
+
+    for (int i = 1; i <= n; ++i)
+        cin >> a[i];
+
+    int Q;
+    cin >> Q;
+
+    vector<vector<pair<int, int>>> queries(n + 1);
+    vector<ll> answer(Q);
+
+    for (int id = 0; id < Q; ++id) {
+        int l, r;
+        cin >> l >> r;
+        queries[r].push_back({l, id});
+    }
+
+    SegTree seg(n);
+
+    vector<pair<ll, int>> st;
+
+    for (int r = 1; r <= n; ++r) {
+        ll x = a[r];
+        int left = r;
+
+        while (!st.empty() && st.back().first <= x) {
+            left = st.back().second;
+            st.pop_back();
+        }
+
+        seg.update(left, r, x);
+
+        st.push_back({x, left});
+
+        for (auto [l, id] : queries[r]) {
+            answer[id] = seg.query(l, r);
+        }
+    }
+
+    for (ll x : answer)
+        cout << x << '\n';
+
+    return 0;
+}
+    
