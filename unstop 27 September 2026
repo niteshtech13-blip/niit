@@ -1,0 +1,111 @@
+#include <bits/stdc++.h>
+using namespace std;
+
+class FenwickTree {
+private:
+    vector<long long> bit;
+    int n;
+
+public:
+    FenwickTree(int size) {
+        n = size;
+        bit.assign(n + 1, 0);
+    }
+
+    // Add value at a 1-based index
+    void update(int index, long long value) {
+        while (index <= n) {
+            bit[index] += value;
+            index += index & -index;
+        }
+    }
+
+    // Number/frequency sum from index 1 to index
+    long long query(int index) {
+        long long sum = 0;
+
+        while (index > 0) {
+            sum += bit[index];
+            index -= index & -index;
+        }
+
+        return sum;
+    }
+};
+
+int main() {
+    ios::sync_with_stdio(false);
+    cin.tie(nullptr);
+
+    int n;
+    long long K;
+
+    cin >> n >> K;
+
+    vector<long long> arr(n);
+
+    for (int i = 0; i < n; i++) {
+        cin >> arr[i];
+    }
+
+    vector<long long> values = arr;
+
+    sort(values.begin(), values.end());
+
+    values.erase(
+        unique(values.begin(), values.end()),
+        values.end()
+    );
+
+    int uniqueValues = values.size();
+
+    FenwickTree bit(uniqueValues);
+
+    auto countLessEqual = [&](long long x) -> long long {
+
+        int index =
+            upper_bound(
+                values.begin(),
+                values.end(),
+                x
+            ) - values.begin();
+
+        return bit.query(index);
+    };
+
+    auto countLess = [&](long long x) -> long long {
+
+        int index =
+            lower_bound(
+                values.begin(),
+                values.end(),
+                x
+            ) - values.begin();
+
+        return bit.query(index);
+    };
+
+    for (int i = 0; i < n; i++) {
+
+        long long current = arr[i];
+
+        long long left = current - K;
+        long long right = current + K;
+
+        long long answer =
+            countLessEqual(right) - countLess(left);
+
+        cout << answer << '\n';
+
+        int compressedIndex =
+            lower_bound(
+                values.begin(),
+                values.end(),
+                current
+            ) - values.begin() + 1;
+
+        bit.update(compressedIndex, 1);
+    }
+
+    return 0;
+}
