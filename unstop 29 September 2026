@@ -1,0 +1,82 @@
+#include <bits/stdc++.h>
+using namespace std;
+
+int main() {
+    ios::sync_with_stdio(false);
+    cin.tie(nullptr);
+
+    int n, k;
+    cin >> n >> k;
+
+    vector<long long> value(n);
+    vector<long long> species(n);
+
+    for (int i = 0; i < n; i++) {
+        cin >> value[i];
+    }
+
+    for (int i = 0; i < n; i++) {
+        cin >> species[i];
+    }
+
+    // Frequency map for distinct species in the current window.
+    unordered_map<long long, int> freq;
+    freq.reserve(2 * k);
+    freq.max_load_factor(0.7);
+
+    // Deque stores indices; values are kept in decreasing order.
+    // The front always represents the maximum value in the window.
+    deque<int> dq;
+
+    int distinct = 0;
+    vector<long long> answer;
+
+    for (int right = 0; right < n; right++) {
+        // Add current species to the frequency map.
+        if (freq[species[right]] == 0) {
+            distinct++;
+        }
+        freq[species[right]]++;
+
+        // Maintain decreasing values in deque.
+        while (!dq.empty() && value[dq.back()] <= value[right]) {
+            dq.pop_back();
+        }
+        dq.push_back(right);
+
+        // Remove elements that have moved out of the window.
+        int left = right - k + 1;
+
+        if (right >= k) {
+            int removedIndex = right - k;
+
+            freq[species[removedIndex]]--;
+            if (freq[species[removedIndex]] == 0) {
+                distinct--;
+                freq.erase(species[removedIndex]);
+            }
+        }
+
+        while (!dq.empty() && dq.front() < left) {
+            dq.pop_front();
+        }
+
+        // A complete window has been formed.
+        if (right >= k - 1) {
+            // Notable if 2 * distinct species >= k.
+            if (2LL * distinct >= k) {
+                answer.push_back(value[dq.front()]);
+            } else {
+                answer.push_back(-1);
+            }
+        }
+    }
+
+    for (int i = 0; i < (int)answer.size(); i++) {
+        if (i > 0) cout << ' ';
+        cout << answer[i];
+    }
+    cout << '\n';
+
+    return 0;
+}
