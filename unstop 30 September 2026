@@ -1,0 +1,152 @@
+#include <iostream>
+#include <vector>
+#include <algorithm>
+#include <cmath>
+
+using namespace std;
+
+// Structure to represent an edge in the graph
+struct Edge {
+    int u, v, w;
+    bool operator<(const Edge& other) const {
+        return w < other.w;
+    }
+};
+
+// Disjoint Set Union (DSU) for Kruskal's Algorithm
+struct DSU {
+    vector<int> parent, rank;
+    DSU(int n) {
+        parent.resize(n + 1);
+        rank.assign(n + 1, 0);
+        for (int i = 0; i <= n; ++i) parent[i] = i;
+    }
+    int find(int i) {
+        if (parent[i] == i) return i;
+        return parent[i] = find(parent[i]); // Path compression
+    }
+    bool unite(int i, int j) {
+        int root_i = find(i);
+        int root_j = find(j);
+        if (root_i != root_j) {
+            if (rank[root_i] < rank[root_j]) swap(root_i, root_j);
+            parent[root_j] = root_i;
+            if (rank[root_i] == rank[root_j]) rank[root_i]++;
+            return true;
+        }
+        return false;
+    }
+};
+
+const int LOGN = 20; // Supports up to N = 5 * 10^5
+vector<vector<pair<int, int>>> adj;
+vector<int> depth;
+vector<vector<int>> up;
+vector<vector<int>> max_edge;
+
+// DFS to calculate depths and initialize the binary lifting tables
+void dfs(int node, int p, int edge_w, int d) {
+    depth[node] = d;
+    up[node][0] = p;
+    max_edge[node][0] = edge_w;
+
+    for (int i = 1; i < LOGN; ++i) {
+        up[node][i] = up[up[node][i - 1]][i - 1];
+        max_edge[node][i] = max(max_edge[node][i - 1], max_edge[up[node][i - 1]][i - 1]);
+    }
+
+    for (auto& edge : adj[node]) {
+        int neighbor = edge.first;
+        int w = edge.second;
+        if (neighbor != p) {
+            dfs(neighbor, node, w, d + 1);
+        }
+    }
+}
+
+// Function to find the minimax/bottleneck edge weight between two nodes
+int query(int u, int v, DSU& dsu) {
+    // If they belong to different connected components, they are unreachable
+    if (dsu.find(u) != dsu.find(v)) {
+        return -1; 
+    }
+
+    int ans = 0;
+    if (depth[u] < depth[v]) swap(u, v);
+
+    // Step 1: Lift the deeper node to the same depth level as the other node
+    int diff = depth[u] - depth[v];
+    for (int i = LOGN - 1; i >= 0; --i) {
+        if ((diff >> i) & 1) {
+            ans = max(ans, max_edge[u][i]);
+            u = up[u][i];
+        }
+    }
+
+    if (u == v) return ans;
+
+    // Step 2: Lift both nodes simultaneously right below their lowest common ancestor
+    for (int i = LOGN - 1; i >= 0; --i) {
+        if (up[u][i] != up[v][i]) {
+            ans = max({ans, max_edge[u][i], max_edge[v][i]});
+            u = up[u][i];
+            v = up[v][i];
+        }
+    }
+
+    // Step 3: Include the final edges connecting to the immediate ancestor
+    return max({ans, max_edge[u][0], max_edge[v][0]});
+}
+
+int main() {
+    // Optimize standard I/O operations for performance
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+
+    int n, m;
+    if (!(cin >> n >> m)) return 0;
+
+    vector<Edge> edges(m);
+    for (int i = 0; i < m; ++i) {
+        cin >> edges[i].u >> edges[i].v >> edges[i].w;
+    }
+
+    // Sort edges globally to greedily select lower disturbance scores
+    sort(edges.begin(), edges.end());
+
+    DSU dsu(n);
+    adj.resize(n + 1);
+    
+    int edges_used = 0;
+    for (const auto& edge : edges) {
+        if (dsu.unite(edge.u, edge.v)) {
+            adj[edge.u].push_back({edge.v, edge.w});
+            adj[edge.v].push_back({edge.u, edge.w});
+            edges_used++;
+            if (edges_used == n - 1) break;
+        }
+    }
+
+    // Allocation of tables for Tree structures
+    depth.assign(n + 1, 0);
+    up.assign(n + 1, vector<int>(LOGN, 0));
+    max_edge.assign(n + 1, vector<int>(LOGN, 0));
+
+    // Handle separate forests/components if the graph is disconnected
+    for (int i = 1; i <= n; ++i) {
+        if (depth[i] == 0 && up[i][0] == 0) {
+            dfs(i, i, 0, 1);
+        }
+    }
+
+    int q;
+    if (cin >> q) {
+        while (q--) {
+            int u, v;
+            cin >> u >> v;
+            cout << query(u, v, dsu) << "\n";
+        }
+    }
+
+    return 0;
+}
