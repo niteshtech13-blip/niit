@@ -1,0 +1,73 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#define MAXN 200005
+#define MAXLEN 16
+
+typedef struct {
+    char name[MAXLEN];
+    int count;
+} Species;
+
+Species species[MAXN];
+int total = 0;
+
+int compare(const void *a, const void *b) {
+    Species *x = (Species *)a;
+    Species *y = (Species *)b;
+
+    if (x->count != y->count)
+        return y->count - x->count;
+
+    return strcmp(x->name, y->name);
+}
+
+int findSpecies(char *name) {
+    for (int i = 0; i < total; i++) {
+        if (strcmp(species[i].name, name) == 0)
+            return i;
+    }
+    return -1;
+}
+
+int main() {
+    int n, C;
+    scanf("%d %d", &n, &C);
+
+    char type, name[MAXLEN];
+
+    for (int i = 0; i < n; i++) {
+        scanf(" %c", &type);
+
+        if (type == 'S') {
+            scanf("%15s", name);
+
+            int idx = findSpecies(name);
+
+            if (idx == -1) {
+                strcpy(species[total].name, name);
+                species[total].count = 1;
+                total++;
+            } else {
+                species[idx].count++;
+            }
+        } else if (type == 'R') {
+            qsort(species, total, sizeof(Species), compare);
+
+            int limit = (total < C) ? total : C;
+
+            for (int j = 0; j < limit; j++) {
+                if (j > 0)
+                    printf(" ");
+
+                printf("%s", species[j].name);
+            }
+
+            printf("\n");
+        }
+    }
+
+    return 0;
+}
+   
