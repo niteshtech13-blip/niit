@@ -1,0 +1,119 @@
+#include <iostream>
+#include <vector>
+#include <algorithm>
+#include <cmath>
+
+using namespace std;
+
+int B;
+
+struct Query {
+    int l, r, id;
+    bool operator<(const Query& other) const {
+        int b1 = l / B;
+        int b2 = other.l / B;
+        if (b1 != b2) return b1 < b2;
+        return (b1 & 1) ? (r < other.r) : (r > other.r);
+    }
+};
+
+int main() {
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+
+    int n, q;
+    if (!(cin >> n >> q)) return 0;
+
+    B = max(1, (int)(n / sqrt(q)));
+
+    vector<int> a(n);
+    vector<int> temp(n);
+    for (int i = 0; i < n; i++) {
+        cin >> a[i];
+        temp[i] = a[i];
+    }
+
+    sort(temp.begin(), temp.end());
+    temp.erase(unique(temp.begin(), temp.end()), temp.end());
+    int m = temp.size();
+    
+    for (int i = 0; i < n; i++) {
+        a[i] = lower_bound(temp.begin(), temp.end(), a[i]) - temp.begin();
+    }
+
+    vector<Query> queries(q);
+    for (int i = 0; i < q; i++) {
+        cin >> queries[i].l >> queries[i].r;
+      
+        queries[i].l--;
+        queries[i].r--;
+        queries[i].id = i;
+    }
+
+  
+    sort(queries.begin(), queries.end());
+
+    vector<int> freq(m, 0);
+    vector<int> count_freq(n + 1, 0);
+    count_freq[0] = m;
+    int max_freq = 0;
+
+   
+    auto add = [&](int idx) {
+        int v = a[idx];
+        int f = freq[v];
+        count_freq[f]--;
+        freq[v]++;
+        count_freq[f + 1]++;
+        if (f + 1 > max_freq) {
+            max_freq = f + 1;
+        }
+    };
+
+    auto remove = [&](int idx) {
+        int v = a[idx];
+        int f = freq[v];
+        count_freq[f]--;
+        if (f == max_freq && count_freq[f] == 0) {
+            max_freq--;
+        }
+        freq[v]--;
+        count_freq[f - 1]++;
+    };
+
+    vector<int> ans(q);
+    int curr_L = 0, curr_R = -1;
+
+    for (int i = 0; i < q; i++) {
+        int L = queries[i].l;
+        int R = queries[i].r;
+
+        
+        while (curr_L > L) {
+            curr_L--;
+            add(curr_L);
+        }
+        while (curr_R < R) {
+            curr_R++;
+            add(curr_R);
+        }
+        while (curr_L < L) {
+            remove(curr_L);
+            curr_L++;
+        }
+        while (curr_R > R) {
+            remove(curr_R);
+            curr_R--;
+        }
+
+        ans[queries[i].id] = max_freq;
+    }
+
+    
+    for (int i = 0; i < q; i++) {
+        cout << ans[i] << "\n";
+    }
+
+    return 0;
+}
+  
