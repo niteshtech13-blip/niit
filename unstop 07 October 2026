@@ -1,0 +1,72 @@
+#include <bits/stdc++.h>
+using namespace std;
+
+using ll = long long;
+
+int main() {
+    ios::sync_with_stdio(false);
+    cin.tie(nullptr);
+
+    int n, m;
+    cin >> n >> m;
+
+    vector<vector<pair<int, ll>>> adj(n + 1);
+
+    for (int i = 0; i < m; i++) {
+        int u, v;
+        ll w;
+        cin >> u >> v >> w;
+
+        // Undirected graph
+        adj[u].push_back({v, w});
+        adj[v].push_back({u, w});
+    }
+
+    const ll INF = LLONG_MAX;
+
+    // dist[i] = minimum possible maximum edge weight
+    // on any path from node 1 to node i
+    vector<ll> dist(n + 1, INF);
+
+    priority_queue<
+        pair<ll, int>,
+        vector<pair<ll, int>>,
+        greater<pair<ll, int>>
+    > pq;
+
+    dist[1] = 0;
+    pq.push({0, 1});
+
+    while (!pq.empty()) {
+        auto [current, u] = pq.top();
+        pq.pop();
+
+        if (current != dist[u])
+            continue;
+
+        for (auto [v, w] : adj[u]) {
+
+            // Maximum danger if we go from u to v
+            ll newDist = max(current, w);
+
+            if (newDist < dist[v]) {
+                dist[v] = newDist;
+                pq.push({dist[v], v});
+            }
+        }
+    }
+
+    for (int i = 1; i <= n; i++) {
+        if (dist[i] == INF)
+            cout << -1;
+        else
+            cout << dist[i];
+
+        if (i != n)
+            cout << " ";
+    }
+
+    cout << '\n';
+
+    return 0;
+}
