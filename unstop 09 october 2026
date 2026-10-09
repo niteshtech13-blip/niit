@@ -1,0 +1,48 @@
+#include <bits/stdc++.h>
+using namespace std;
+
+int main() {
+    ios::sync_with_stdio(false);
+    cin.tie(nullptr);
+
+    int N, W;
+    cin >> N >> W;
+
+    vector<int> a(N);
+
+    for (int i = 0; i < N; i++) {
+        cin >> a[i];
+    }
+
+    multiset<int> ms;
+
+    // Put first W elements into the window
+    for (int i = 0; i < W; i++) {
+        ms.insert(a[i]);
+    }
+
+    // Sliding window
+    for (int i = 0; i <= N - W; i++) {
+
+        // Maximum value
+        int maximum = *ms.rbegin();
+
+        // Number of occurrences of maximum
+        int count = ms.count(maximum);
+
+        cout << maximum << " " << count << "\n";
+
+        // Slide window
+        if (i < N - W) {
+
+            // Remove outgoing element
+            auto it = ms.find(a[i]);
+            ms.erase(it);
+
+            // Add incoming element
+            ms.insert(a[i + W]);
+        }
+    }
+
+    return 0;
+}
