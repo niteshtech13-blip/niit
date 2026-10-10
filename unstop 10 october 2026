@@ -1,0 +1,64 @@
+#include <bits/stdc++.h>
+using namespace std;
+
+using ll = long long;
+
+int main() {
+    ios::sync_with_stdio(false);
+    cin.tie(nullptr);
+
+    int K, Q;
+    cin >> K >> Q;
+
+    using P = pair<ll, int>;
+    priority_queue<P, vector<P>, greater<P>> pq;
+
+    for (int i = 1; i <= K; i++) {
+        pq.push({0, i});
+    }
+
+    unordered_map<int, pair<int, ll>> active;
+
+    while (Q--) {
+        int type, id;
+        cin >> type >> id;
+
+        if (type == 1) {
+            ll d;
+            cin >> d;
+
+            auto [load, channel] = pq.top();
+            pq.pop();
+
+            pq.push({load + d, channel});
+            active[id] = {channel, d};
+
+            cout << channel << '\n';
+        } 
+        else {
+            auto [channel, d] = active[id];
+            active.erase(id);
+
+            vector<P> temp;
+            while (!pq.empty()) {
+                auto p = pq.top();
+                pq.pop();
+
+                if (p.second == channel) {
+                    cout << channel << ' ' << p.first - d << '\n';
+                    pq.push({p.first - d, channel});
+                    break;
+                }
+
+                temp.push_back(p);
+            }
+
+            for (auto p : temp) {
+                pq.push(p);
+            }
+        }
+    }
+
+    return 0;
+}
+     
