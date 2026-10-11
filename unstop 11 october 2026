@@ -1,0 +1,55 @@
+#include <bits/stdc++.h>
+using namespace std;
+
+int main() {
+    ios::sync_with_stdio(false);
+    cin.tie(nullptr);
+
+    int M;
+    cin >> M;
+
+    // Stores {-urgency, id}
+    set<pair<long long, long long>> waiting;
+
+    // Maps artifact ID to urgency
+    unordered_map<long long, long long> urgencyById;
+    urgencyById.reserve(M);
+
+    while (M--) {
+        string event;
+        cin >> event;
+
+        if (event == "ARRIVE") {
+            long long id, urgency;
+            cin >> id >> urgency;
+
+            waiting.insert({-urgency, id});
+            urgencyById[id] = urgency;
+        }
+        else if (event == "WITHDRAW") {
+            long long id;
+            cin >> id;
+
+            long long urgency = urgencyById[id];
+
+            waiting.erase({-urgency, id});
+            urgencyById.erase(id);
+        }
+        else if (event == "RESTORE") {
+            if (waiting.empty()) {
+                cout << "IDLE\n";
+            }
+            else {
+                auto it = waiting.begin();
+                long long id = it->second;
+
+                cout << id << '\n';
+
+                waiting.erase(it);
+                urgencyById.erase(id);
+            }
+        }
+    }
+
+    return 0;
+}
