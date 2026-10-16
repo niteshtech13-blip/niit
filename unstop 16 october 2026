@@ -1,0 +1,32 @@
+#include <bits/stdc++.h>
+using namespace std;
+
+int main() {
+    int n, k;
+        scanf("%d %d", &n, &k);
+            vector<long long> id(n);
+                vector<int> t(n);
+                    for (int i = 0; i < n; i++) scanf("%lld %d", &id[i], &t[i]);
+
+                        deque<int> dq;                       // indices, temps non-increasing
+                            unordered_map<long long, int> cnt;
+                                cnt.reserve(n * 2);
+
+                                    for (int i = 0; i < n; i++) {
+                                            while (!dq.empty() && dq.front() <= i - k) dq.pop_front();
+                                                    while (!dq.empty() && t[dq.back()] < t[i]) dq.pop_back();  // strict: keep earlier ties
+                                                            dq.push_back(i);
+                                                                    if (i >= k - 1) cnt[id[dq.front()]]++;
+                                                                        }
+
+                                                                            vector<pair<long long, int>> res(cnt.begin(), cnt.end());
+                                                                                sort(res.begin(), res.end(), [](auto &a, auto &b) {
+                                                                                        if (a.second != b.second) return a.second > b.second;
+                                                                                                return a.first < b.first;
+                                                                                                    });
+
+                                                                                                        printf("%d\n", (int)res.size());
+                                                                                                            for (auto &p : res) printf("%lld %d\n", p.first, p.second);
+                                                                                                                return 0;
+                                                                                                                }
+                
