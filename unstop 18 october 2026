@@ -1,0 +1,81 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+#define MAXN 200005
+
+int a[MAXN];
+int deque[MAXN];
+int maxima[MAXN];
+int sorted[MAXN];
+
+int compareInt(const void *x, const void *y) {
+    int a = *(const int *)x;
+    int b = *(const int *)y;
+
+    if (a < b) return -1;
+    if (a > b) return 1;
+    return 0;
+}
+
+int main(void) {
+    int n, k;
+
+    if (scanf("%d %d", &n, &k) != 2)
+        return 0;
+
+    for (int i = 0; i < n; i++)
+        scanf("%d", &a[i]);
+
+    int head = 0;
+    int tail = 0;
+    int total = n - k + 1;
+
+    for (int i = 0; i < n; i++) {
+        while (head < tail && deque[head] <= i - k)
+            head++;
+
+        while (head < tail &&
+               a[deque[tail - 1]] <= a[i])
+            tail--;
+
+        deque[tail++] = i;
+
+        if (i >= k - 1)
+            maxima[i - k + 1] = a[deque[head]];
+    }
+
+    for (int i = 0; i < total; i++) {
+        if (i > 0)
+            printf(" ");
+        printf("%d", maxima[i]);
+        sorted[i] = maxima[i];
+    }
+    printf("\n");
+
+    qsort(sorted, total, sizeof(int), compareInt);
+
+    int bestValue = sorted[0];
+    int bestCount = 0;
+    int i = 0;
+
+    while (i < total) {
+        int j = i + 1;
+
+        while (j < total && sorted[j] == sorted[i])
+            j++;
+
+        int count = j - i;
+
+        if (count > bestCount) {
+            bestCount = count;
+            bestValue = sorted[i];
+        }
+
+        i = j;
+    }
+
+    printf("%d %d\n", bestValue, bestCount);
+
+    return 0;
+}
+    
