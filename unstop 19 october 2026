@@ -1,0 +1,145 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#define MAXN 300005
+
+typedef struct {
+    int id;
+    long long total;
+} Entry;
+
+typedef struct {
+    int type;
+    int id;
+    int units;
+} Event;
+
+Event events[MAXN];
+int ids[MAXN];
+long long totals[MAXN];
+Entry heap[MAXN * 2];
+
+int heapSize = 0;
+
+int compareInt(const void *a, const void *b) {
+    int x = *(const int *)a;
+    int y = *(const int *)b;
+    return (x > y) - (x < y);
+}
+
+int lowerBound(int arr[], int n, int x) {
+    int l = 0, r = n;
+    while (l < r) {
+        int mid = l + (r - l) / 2;
+        if (arr[mid] < x)
+            l = mid + 1;
+        else
+            r = mid;
+    }
+    return l;
+}
+
+int better(Entry a, Entry b) {
+    if (a.total != b.total)
+        return a.total > b.total;
+    return a.id < b.id;
+}
+
+void push(Entry x) {
+    int i = ++heapSize;
+    while (i > 1 && better(x, heap[i / 2])) {
+        heap[i] = heap[i / 2];
+        i /= 2;
+    }
+    heap[i] = x;
+}
+
+Entry pop(void) {
+    Entry result = heap[1];
+    Entry last = heap[heapSize--];
+
+    int i = 1;
+
+    while (i * 2 <= heapSize) {
+        int child = i * 2;
+
+        if (child + 1 <= heapSize &&
+            better(heap[child + 1], heap[child]))
+            child++;
+
+        if (better(last, heap[child]))
+            break;
+
+        heap[i] = heap[child];
+        i = child;
+    }
+
+    if (heapSize > 0)
+        heap[i] = last;
+
+    return result;
+}
+
+int main(void) {
+    int n;
+
+    if (scanf("%d", &n) != 1)
+        return 0;
+
+    int idCount = 0;
+
+    for (int i = 0; i < n; i++) {
+        char op[10];
+        scanf("%9s", op);
+
+        if (strcmp(op, "BUY") == 0) {
+            events[i].type = 1;
+            scanf("%d %d", &events[i].id, &events[i].units);
+            ids[idCount++] = events[i].id;
+        } else {
+            events[i].type = 2;
+        }
+    }
+
+    qsort(ids, idCount, sizeof(int), compareInt);
+
+    int unique = 0;
+    for (int i = 0; i < idCount; i++) {
+        if (i == 0 || ids[i] != ids[i - 1])
+            ids[unique++] = ids[i];
+    }
+
+    for (int i = 0; i < n; i++) {
+        if (events[i].type == 1) {
+            int idx = lowerBound(ids, unique, events[i].id);
+            totals[idx] += events[i].units;
+
+            Entry e;
+            e.id = events[i].id;
+            e.total = totals[idx];
+            push(e);
+        } else {
+            while (heapSize > 0) {
+                Entry top = heap[1];
+                int idx = lowerBound(ids, unique, top.id);
+
+                if (top.total == totals[idx])
+                    break;
+
+                pop();
+            }
+
+            Entry best = pop();
+            int idx = lowerBound(ids, unique, best.id);
+
+            printf("%d %lld\n", best.id, best.total);
+
+            totals[idx] = 0;
+            /* Old heap entries are stale; insert the reset state. */
+            push((Entry){best.id, 0});
+        }
+    }
+
+    return 0;
+}
