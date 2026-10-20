@@ -1,0 +1,78 @@
+#include <bits/stdc++.h>
+using namespace std;
+
+int par[200005], sz[200005];
+
+int find(int x) {
+    while (par[x] != x) {
+            par[x] = par[par[x]];
+                    x = par[x];
+                        }
+                            return x;
+                            }
+
+                            int main() {
+                                int n, m;
+                                    scanf("%d %d", &n, &m);
+
+                                        vector<int> cat(n + 1);
+                                            for (int i = 1; i <= n; i++) scanf("%d", &cat[i]);
+
+                                                vector<array<int, 3>> edges(m);
+                                                    for (int i = 0; i < m; i++) {
+                                                            int u, v, c;
+                                                                    scanf("%d %d %d", &u, &v, &c);
+                                                                            edges[i] = {c, u, v};
+                                                                                }
+                                                                                    sort(edges.begin(), edges.end());
+
+                                                                                        for (int i = 1; i <= n; i++) { par[i] = i; sz[i] = 1; }
+
+                                                                                            long long total = 0;
+                                                                                                for (auto &e : edges) {
+                                                                                                        int a = find(e[1]), b = find(e[2]);
+                                                                                                                if (a == b) continue;
+                                                                                                                        if (sz[a] < sz[b]) swap(a, b);
+                                                                                                                                par[b] = a;
+                                                                                                                                        sz[a] += sz[b];
+                                                                                                                                                total += e[0];
+                                                                                                                                                    }
+
+                                                                                                                                                        // Largest cluster; ties -> cluster with smallest zone number.
+                                                                                                                                                            // Scanning zones in increasing order and using strict '>' handles this,
+                                                                                                                                                                // because the first zone seen of each cluster is its smallest zone.
+                                                                                                                                                                    vector<char> seen(n + 1, 0);
+                                                                                                                                                                        int bestRoot = -1, bestSize = 0;
+                                                                                                                                                                            for (int i = 1; i <= n; i++) {
+                                                                                                                                                                                    int r = find(i);
+                                                                                                                                                                                            if (seen[r]) continue;
+                                                                                                                                                                                                    seen[r] = 1;
+                                                                                                                                                                                                            if (sz[r] > bestSize) {
+                                                                                                                                                                                                                        bestSize = sz[r];
+                                                                                                                                                                                                                                    bestRoot = r;
+                                                                                                                                                                                                                                            }
+                                                                                                                                                                                                                                                }
+
+                                                                                                                                                                                                                                                    // Collect categories in the best cluster, then find the mode (ties -> smaller code)
+                                                                                                                                                                                                                                                        vector<int> cats;
+                                                                                                                                                                                                                                                            cats.reserve(bestSize);
+                                                                                                                                                                                                                                                                for (int i = 1; i <= n; i++)
+                                                                                                                                                                                                                                                                        if (find(i) == bestRoot) cats.push_back(cat[i]);
+                                                                                                                                                                                                                                                                            sort(cats.begin(), cats.end());
+
+                                                                                                                                                                                                                                                                                int bestCat = -1, bestCnt = 0;
+                                                                                                                                                                                                                                                                                    for (size_t i = 0; i < cats.size();) {
+                                                                                                                                                                                                                                                                                            size_t j = i;
+                                                                                                                                                                                                                                                                                                    while (j < cats.size() && cats[j] == cats[i]) j++;
+                                                                                                                                                                                                                                                                                                            int cnt = j - i;
+                                                                                                                                                                                                                                                                                                                    if (cnt > bestCnt) { // sorted ascending, so strict '>' keeps the smaller code on ties
+                                                                                                                                                                                                                                                                                                                                bestCnt = cnt;
+                                                                                                                                                                                                                                                                                                                                            bestCat = cats[i];
+                                                                                                                                                                                                                                                                                                                                                    }
+                                                                                                                                                                                                                                                                                                                                                            i = j;
+                                                                                                                                                                                                                                                                                                                                                                }
+
+                                                                                                                                                                                                                                                                                                                                                                    printf("%lld %d %d %d\n", total, bestSize, bestCat, bestCnt);
+                                                                                                                                                                                                                                                                                                                                                                        return 0;
+                                                                                                                                                                                                                                                                                                                                                                        }
+       
